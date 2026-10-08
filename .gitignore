@@ -15,3 +15,5 @@ circuits/ptau/
 next-env.d.ts
 frontend/AGENTS.md
 deployments/localnet.json
+.vercel
+.env*

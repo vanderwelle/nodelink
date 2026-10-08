@@ -1,0 +1,20 @@
+# Never upload secrets or local state to Vercel
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+.vercel
+node_modules
+**/node_modules
+.next
+**/.next
+.venv
+**/__pycache__
+.pytest_cache
+circuits/build
+circuits/ptau
+*.log
+*.tsbuildinfo
+deployments/localnet.json

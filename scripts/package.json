@@ -11,7 +11,8 @@
     "fund": "tsx fund-check.ts",
     "typecheck": "tsc --noEmit -p .",
     "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts",
-    "test:browser": "NODELINK_NETWORK=localnet tsx tests/browser.localnet.ts"
+    "test:browser": "NODELINK_NETWORK=localnet tsx tests/browser.localnet.ts",
+    "test:mobile": "tsx tests/mobile-screens.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.2",

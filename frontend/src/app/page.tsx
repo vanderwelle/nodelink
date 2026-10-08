@@ -56,7 +56,7 @@ export default function LandingPage() {
 
       <section>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Staker leveling system</h2>
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           {TIERS.map((t) => (
             <div key={t.id} className="card p-4">
               <RankBadge tier={t.id} size="sm" />

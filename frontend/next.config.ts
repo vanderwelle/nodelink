@@ -17,6 +17,8 @@ const EMPTY = "./src/lib/empty-module.ts";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Monorepo: include @nodelink/shared (and workspace root) in serverless traces
+  outputFileTracingRoot: path.join(__dirname, ".."),
   transpilePackages: ["@nodelink/shared"],
   turbopack: {
     root: path.join(__dirname, ".."),

@@ -91,6 +91,30 @@ For a LocalNet UI session: `NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id>
 (adds the KMD and test-only Mnemonic wallet providers). The headless browser test drives the whole
 wizard: `BASE_URL=http://localhost:3100 CHROME_PATH=/usr/bin/google-chrome npm run test:browser -w scripts`.
 
+### Hosted frontend (Vercel)
+
+Production: **https://nodelink-ten.vercel.app** (TestNet app `773918931`). Vercel project `nodelink`
+(team `nodelink`) with Root Directory `frontend` and "include files outside the root directory", so
+`@nodelink/shared` resolves from the workspace. `frontend/vercel.json` installs from the monorepo root
+(`cd .. && npm ci`); `.vercelignore` keeps `.env*`, `node_modules` and circuit build output out of uploads.
+Only two public build-time variables are set on Vercel — `NEXT_PUBLIC_NETWORK=testnet`,
+`NEXT_PUBLIC_APP_ID=773918931`. No mnemonics or tokens live on Vercel; the API routes only read public
+Nodely algod/indexer endpoints.
+
+```bash
+vercel deploy --prod                               # from the repo root (linked via .vercel/, gitignored)
+BASE_URL=https://nodelink-ten.vercel.app npm run test:mobile -w scripts   # 390x844 screenshots + overflow check
+```
+
+**Mobile wallets:** Pera and Defly connect through their own Connect SDKs (deep link / "Launch app"
+button on the same phone, QR on desktop) — no WalletConnect project ID required. Lute opens lute.app in
+a popup. Kibisis is a desktop browser extension and will not work on phones. Switch Pera/Defly to
+**TestNet** inside the app (Pera: Settings → Developer Settings → Node Settings → TestNet).
+
+**Root updater:** deposits only become provable after a root is posted. Keep
+`npm run root-updater -- --watch` running somewhere with `DEPLOYER_MNEMONIC` (or `ROOT_UPDATER_MNEMONIC`)
+in `.env` — it is a long-running process and is intentionally not hosted on Vercel.
+
 ## Design notes & trust assumptions
 
 ### 1. Hot-wallet address encoding (no silent mod-p reduction)
