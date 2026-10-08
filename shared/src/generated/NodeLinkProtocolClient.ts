@@ -74,7 +74,7 @@ export type HotStatus = {
  * Converts the ABI tuple representation of a HotStatus to the struct representation
  */
 export function HotStatusFromTuple(abiTuple: [number, bigint]) {
-  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.HotStatus, APP_SPEC.structs) as HotStatus
+  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.HotStatus!, APP_SPEC.structs) as HotStatus
 }
 
 export type LeafInfo = {
@@ -87,7 +87,7 @@ export type LeafInfo = {
  * Converts the ABI tuple representation of a LeafInfo to the struct representation
  */
 export function LeafInfoFromTuple(abiTuple: [bigint, bigint]) {
-  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.LeafInfo, APP_SPEC.structs) as LeafInfo
+  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.LeafInfo!, APP_SPEC.structs) as LeafInfo
 }
 
 export type StatusView = {
@@ -101,7 +101,7 @@ export type StatusView = {
  * Converts the ABI tuple representation of a StatusView to the struct representation
  */
 export function StatusViewFromTuple(abiTuple: [bigint, bigint, boolean]) {
-  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.StatusView, APP_SPEC.structs) as StatusView
+  return getABIStructFromABITuple(abiTuple, APP_SPEC.structs.StatusView!, APP_SPEC.structs) as StatusView
 }
 
 /**
@@ -1449,7 +1449,7 @@ export class NodeLinkProtocolClient {
     const client = this
     const composer = this.algorand.newGroup()
     let promiseChain:Promise<unknown> = Promise.resolve()
-    const resultMappers: Array<undefined | ((x: ABIReturn | undefined) => any)> = []
+    const resultMappers: Array<undefined | ((x: ABIReturn | undefined) => unknown)> = []
     return {
       /**
        * Add a bootstrap(pay)void method call against the NodeLinkProtocol contract
@@ -1573,7 +1573,7 @@ export class NodeLinkProtocolClient {
     } as unknown as NodeLinkProtocolComposer
   }
 }
-export type NodeLinkProtocolComposer<TReturns extends [...any[]] = []> = {
+export type NodeLinkProtocolComposer<TReturns extends [...unknown[]] = []> = {
   /**
    * Calls the bootstrap(pay)void ABI method.
    *
@@ -1727,7 +1727,7 @@ export type NodeLinkProtocolComposer<TReturns extends [...any[]] = []> = {
    */
   send(params?: SendParams): Promise<NodeLinkProtocolComposerResults<TReturns>>
 }
-export type NodeLinkProtocolComposerResults<TReturns extends [...any[]]> = Expand<SendAtomicTransactionComposerResults & {
+export type NodeLinkProtocolComposerResults<TReturns extends [...unknown[]]> = Expand<SendAtomicTransactionComposerResults & {
   returns: TReturns
 }>
 

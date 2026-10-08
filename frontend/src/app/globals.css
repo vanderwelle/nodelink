@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #05070d;
+  --color-ink-900: #0a0e17;
+  --color-ink-800: #111827;
+  --color-ink-700: #1c2433;
+  --color-ink-600: #2a3446;
+  --color-accent: #2dd4bf;
+  --color-accent-strong: #14b8a6;
+  --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink-950);
+  color: #e5e7eb;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(45, 212, 191, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(167, 139, 250, 0.08), transparent);
+  background-attachment: fixed;
+}
+
+@utility card {
+  @apply rounded-2xl border border-white/10 bg-ink-900/80 backdrop-blur;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 bg-accent text-ink-950 hover:bg-accent-strong;
+}
+@utility btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 border border-white/15 bg-white/5 text-gray-100 hover:bg-white/10;
+}
+@utility input {
+  @apply w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-accent focus:outline-none;
+}
+@utility label {
+  @apply mb-1 block text-xs font-medium uppercase tracking-wider text-gray-400;
+}

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
+    "@agoralabs-sh/avm-web-provider": "^1.7.0",
     "@algorandfoundation/algokit-utils": "^9.2.2",
     "@blockshake/defly-connect": "^1.2.1",
     "@nodelink/shared": "*",
