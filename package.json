@@ -1,0 +1,17 @@
+{
+  "name": "nodelink",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["shared", "circuits", "scripts", "frontend"],
+  "scripts": {
+    "circuit:build": "npm run build -w circuits",
+    "circuit:test": "npm run test -w circuits",
+    "contract:build": "bash contracts/build.sh",
+    "deploy:testnet": "npm run deploy -w scripts",
+    "e2e:testnet": "npm run e2e -w scripts",
+    "root-updater": "npm run root-updater -w scripts",
+    "dev": "npm run dev -w frontend",
+    "build": "npm run build -w frontend",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w scripts && npm run typecheck -w frontend"
+  }
+}

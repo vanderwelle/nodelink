@@ -1,0 +1,24 @@
+{
+  "name": "@nodelink/shared",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./generated": "./src/generated/NodeLinkProtocolClient.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "algosdk": "^3.5.2",
+    "poseidon-lite": "^0.3.0",
+    "@algorandfoundation/algokit-utils": "^9.2.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

@@ -1,0 +1,1536 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 1 0 32 8 34100
+    bytecblock 0x151f7c75 "admin" "bootstrapped" 0x686f745f7374617475735f 0x7075626c69635f70726f66696c655f "root_updater" "root_cursor" "total_claims" 0x76616c69645f726f6f7473 0x6c6561665f636f756e7473 "status_ttl_rounds" "testnet_skip_online_check" 0x068101
+    // contracts/nodelink_protocol.py:218-221
+    // # ---------------------------------------------------------------------------
+    // # Contract
+    // # ---------------------------------------------------------------------------
+    // class NodeLinkProtocol(ARC4Contract):
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@17
+    pushbytess 0xa4e8d164 0x0962caad 0x44f2c1be 0x48d1d906 0x7bcdf35f 0x1a45addc 0x654b815e 0x2eceac80 0x5aade837 0xad3cb5fa 0x9569ec26 // method "bootstrap(pay)void", method "set_root_updater(address)void", method "set_admin(address)void", method "post_root(byte[],uint64,uint64)uint64", method "deposit_commitment(byte[],uint64,pay)uint64", method "claim_status(byte[],byte[],pay)(uint8,uint64)", method "reveal_public_profile(address,pay)void", method "hide_public_profile()void", method "get_status(address)(uint64,uint64,bool)", method "is_known_root(byte[],uint64)bool", method "leaf_count(uint64)uint64"
+    txna ApplicationArgs 0
+    match bootstrap set_root_updater set_admin post_root deposit_commitment claim_status reveal_public_profile hide_public_profile get_status is_known_root leaf_count
+    err
+
+main_create_NoOp@17:
+    // contracts/nodelink_protocol.py:218-221
+    // # ---------------------------------------------------------------------------
+    // # Contract
+    // # ---------------------------------------------------------------------------
+    // class NodeLinkProtocol(ARC4Contract):
+    pushbytes 0xec257709 // method "create(address,uint64,bool)void"
+    txna ApplicationArgs 0
+    match create
+    err
+
+
+// contracts.nodelink_protocol.assert_valid_tier(tier: uint64) -> void:
+assert_valid_tier:
+    // contracts/nodelink_protocol.py:163-164
+    // @subroutine
+    // def assert_valid_tier(tier: UInt64) -> None:
+    proto 1 0
+    // contracts/nodelink_protocol.py:165
+    // assert tier >= 1 and tier <= 5, "tier must be 1..5"
+    frame_dig -1
+    bz assert_valid_tier_bool_false@3
+    frame_dig -1
+    pushint 5
+    <=
+    bz assert_valid_tier_bool_false@3
+    intc_0 // 1
+
+assert_valid_tier_bool_merge@4:
+    // contracts/nodelink_protocol.py:165
+    // assert tier >= 1 and tier <= 5, "tier must be 1..5"
+    assert // tier must be 1..5
+    retsub
+
+assert_valid_tier_bool_false@3:
+    intc_1 // 0
+    b assert_valid_tier_bool_merge@4
+
+
+// contracts.nodelink_protocol.assert_field_element(value: bytes) -> void:
+assert_field_element:
+    // contracts/nodelink_protocol.py:168-169
+    // @subroutine
+    // def assert_field_element(value: Bytes) -> None:
+    proto 1 0
+    // contracts/nodelink_protocol.py:170
+    // assert value.length == 32, "field element must be 32 bytes"
+    frame_dig -1
+    len
+    intc_2 // 32
+    ==
+    assert // field element must be 32 bytes
+    // contracts/nodelink_protocol.py:171
+    // assert BigUInt.from_bytes(value) < BigUInt(BN254_R), "non-canonical field element"
+    frame_dig -1
+    pushbytes 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
+    b<
+    assert // non-canonical field element
+    retsub
+
+
+// contracts.nodelink_protocol.assert_no_authority_change_current() -> void:
+assert_no_authority_change_current:
+    // contracts/nodelink_protocol.py:176-177
+    // # Zero execution authority: never allow this app call to rekey/close the sender.
+    // assert Txn.rekey_to == Global.zero_address, "rekey not allowed"
+    txn RekeyTo
+    global ZeroAddress
+    ==
+    assert // rekey not allowed
+    retsub
+
+
+// contracts.nodelink_protocol.assert_mbr_payment(payment: uint64, minimum: uint64) -> void:
+assert_mbr_payment:
+    // contracts/nodelink_protocol.py:180-181
+    // @subroutine
+    // def assert_mbr_payment(payment: gtxn.PaymentTransaction, minimum: UInt64) -> None:
+    proto 2 0
+    // contracts/nodelink_protocol.py:182
+    // assert payment.receiver == Global.current_application_address, "MBR must be paid to the app"
+    frame_dig -2
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert // MBR must be paid to the app
+    // contracts/nodelink_protocol.py:183
+    // assert payment.amount >= minimum, "insufficient MBR payment"
+    frame_dig -2
+    gtxns Amount
+    frame_dig -1
+    >=
+    assert // insufficient MBR payment
+    // contracts/nodelink_protocol.py:184
+    // assert payment.rekey_to == Global.zero_address, "rekey not allowed"
+    frame_dig -2
+    gtxns RekeyTo
+    global ZeroAddress
+    ==
+    assert // rekey not allowed
+    // contracts/nodelink_protocol.py:185
+    // assert payment.close_remainder_to == Global.zero_address, "close not allowed"
+    frame_dig -2
+    gtxns CloseRemainderTo
+    global ZeroAddress
+    ==
+    assert // close not allowed
+    retsub
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.create[routing]() -> void:
+create:
+    // contracts/nodelink_protocol.py:238-239
+    // # ------------------------------------------------------------------ admin
+    // @arc4.abimethod(create="require")
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_0 // 1
+    ==
+    assert // invalid number of bytes for arc4.bool
+    intc_1 // 0
+    getbit
+    dup
+    uncover 2
+    // contracts/nodelink_protocol.py:249
+    // assert status_ttl_rounds > 0, "ttl must be > 0"
+    assert // ttl must be > 0
+    // contracts/nodelink_protocol.py:250
+    // if testnet_skip_online_check:
+    bz create_after_if_else@3
+    // contracts/nodelink_protocol.py:251
+    // assert Global.genesis_hash != Bytes.from_base64(
+    global GenesisHash
+    // contracts/nodelink_protocol.py:251-253
+    // assert Global.genesis_hash != Bytes.from_base64(
+    //     MAINNET_GENESIS_HASH_B64
+    // ), "online-check bypass is forbidden on MainNet"
+    pushbytes base64(wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8=)
+    !=
+    assert // online-check bypass is forbidden on MainNet
+
+create_after_if_else@3:
+    // contracts/nodelink_protocol.py:254
+    // self.admin.value = Txn.sender
+    bytec_1 // "admin"
+    txn Sender
+    app_global_put
+    // contracts/nodelink_protocol.py:255
+    // self.root_updater.value = root_updater
+    bytec 5 // "root_updater"
+    uncover 3
+    app_global_put
+    // contracts/nodelink_protocol.py:256
+    // self.status_ttl_rounds.value = status_ttl_rounds
+    bytec 10 // "status_ttl_rounds"
+    uncover 2
+    app_global_put
+    // contracts/nodelink_protocol.py:257
+    // self.testnet_skip_online_check.value = testnet_skip_online_check
+    bytec 11 // "testnet_skip_online_check"
+    swap
+    app_global_put
+    // contracts/nodelink_protocol.py:258
+    // self.bootstrapped.value = False
+    bytec_2 // "bootstrapped"
+    intc_1 // 0
+    app_global_put
+    // contracts/nodelink_protocol.py:259
+    // self.root_cursor.value = UInt64(0)
+    bytec 6 // "root_cursor"
+    intc_1 // 0
+    app_global_put
+    // contracts/nodelink_protocol.py:260
+    // self.total_claims.value = UInt64(0)
+    bytec 7 // "total_claims"
+    intc_1 // 0
+    app_global_put
+    // contracts/nodelink_protocol.py:238-239
+    // # ------------------------------------------------------------------ admin
+    // @arc4.abimethod(create="require")
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.bootstrap[routing]() -> void:
+bootstrap:
+    // contracts/nodelink_protocol.py:262
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // contracts/nodelink_protocol.py:265
+    // assert Txn.sender == self.admin.value, "admin only"
+    txn Sender
+    intc_1 // 0
+    bytec_1 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // admin only
+    // contracts/nodelink_protocol.py:266
+    // assert not self.bootstrapped.value, "already bootstrapped"
+    intc_1 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    !
+    assert // already bootstrapped
+    // contracts/nodelink_protocol.py:267
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:270
+    // Global.min_balance + UInt64(VALID_ROOTS_BOX_MBR + LEAF_COUNTS_BOX_MBR),
+    global MinBalance
+    pushint 644200
+    +
+    // contracts/nodelink_protocol.py:268-271
+    // assert_mbr_payment(
+    //     mbr_payment,
+    //     Global.min_balance + UInt64(VALID_ROOTS_BOX_MBR + LEAF_COUNTS_BOX_MBR),
+    // )
+    callsub assert_mbr_payment
+    // contracts/nodelink_protocol.py:272
+    // assert self.valid_roots.create(size=VALID_ROOTS_SIZE)
+    bytec 8 // 0x76616c69645f726f6f7473
+    pushint 1536
+    box_create
+    assert
+    // contracts/nodelink_protocol.py:273
+    // assert self.leaf_counts.create(size=LEAF_COUNTS_SIZE)
+    bytec 9 // 0x6c6561665f636f756e7473
+    pushint 40
+    box_create
+    assert
+    // contracts/nodelink_protocol.py:274
+    // self.bootstrapped.value = True
+    bytec_2 // "bootstrapped"
+    intc_0 // 1
+    app_global_put
+    // contracts/nodelink_protocol.py:262
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.set_root_updater[routing]() -> void:
+set_root_updater:
+    // contracts/nodelink_protocol.py:276
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // contracts/nodelink_protocol.py:279
+    // assert Txn.sender == self.admin.value, "admin only"
+    txn Sender
+    intc_1 // 0
+    bytec_1 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // admin only
+    // contracts/nodelink_protocol.py:280
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:281
+    // self.root_updater.value = new_root_updater
+    bytec 5 // "root_updater"
+    swap
+    app_global_put
+    // contracts/nodelink_protocol.py:276
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.set_admin[routing]() -> void:
+set_admin:
+    // contracts/nodelink_protocol.py:283
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // contracts/nodelink_protocol.py:285
+    // assert Txn.sender == self.admin.value, "admin only"
+    txn Sender
+    intc_1 // 0
+    bytec_1 // "admin"
+    app_global_get_ex
+    assert // check self.admin exists
+    ==
+    assert // admin only
+    // contracts/nodelink_protocol.py:286
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:287
+    // self.admin.value = new_admin
+    bytec_1 // "admin"
+    swap
+    app_global_put
+    // contracts/nodelink_protocol.py:283
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.post_root[routing]() -> void:
+post_root:
+    // contracts/nodelink_protocol.py:289
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    dup
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    dup
+    btoi
+    // contracts/nodelink_protocol.py:293
+    // assert Txn.sender == self.root_updater.value, "root updater only"
+    txn Sender
+    intc_1 // 0
+    bytec 5 // "root_updater"
+    app_global_get_ex
+    assert // check self.root_updater exists
+    ==
+    assert // root updater only
+    // contracts/nodelink_protocol.py:294
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:295
+    // assert_field_element(root)
+    dig 4
+    callsub assert_field_element
+    // contracts/nodelink_protocol.py:296
+    // assert_valid_tier(tier)
+    dig 2
+    callsub assert_valid_tier
+    // contracts/nodelink_protocol.py:297
+    // assert leaf_count > 0, "empty tree"
+    dup
+    assert // empty tree
+    // contracts/nodelink_protocol.py:298
+    // assert leaf_count <= self._leaf_count(tier), "leaf_count exceeds deposits"
+    dig 2
+    callsub _leaf_count
+    dig 1
+    >=
+    assert // leaf_count exceeds deposits
+    // contracts/nodelink_protocol.py:300
+    // slot = self.root_cursor.value % ROOT_HISTORY_SIZE
+    intc_1 // 0
+    bytec 6 // "root_cursor"
+    app_global_get_ex
+    assert // check self.root_cursor exists
+    dup
+    intc_2 // 32
+    %
+    // contracts/nodelink_protocol.py:301
+    // self.valid_roots.replace(slot * ROOT_SLOT_SIZE, root + op.itob(tier) + op.itob(leaf_count))
+    dup
+    pushint 48
+    *
+    uncover 5
+    itob
+    dig 7
+    swap
+    concat
+    uncover 4
+    itob
+    concat
+    bytec 8 // 0x76616c69645f726f6f7473
+    cover 2
+    box_replace
+    // contracts/nodelink_protocol.py:302
+    // self.root_cursor.value += 1
+    swap
+    intc_0 // 1
+    +
+    bytec 6 // "root_cursor"
+    swap
+    app_global_put
+    // contracts/nodelink_protocol.py:308
+    // arc4.UInt64(slot),
+    itob
+    // contracts/nodelink_protocol.py:304-309
+    // RootPosted(
+    //     Bytes32.from_bytes(root),
+    //     arc4.UInt64(tier),
+    //     arc4.UInt64(leaf_count),
+    //     arc4.UInt64(slot),
+    // )
+    uncover 3
+    uncover 3
+    concat
+    uncover 2
+    concat
+    dig 1
+    concat
+    // contracts/nodelink_protocol.py:303-310
+    // arc4.emit(
+    //     RootPosted(
+    //         Bytes32.from_bytes(root),
+    //         arc4.UInt64(tier),
+    //         arc4.UInt64(leaf_count),
+    //         arc4.UInt64(slot),
+    //     )
+    // )
+    pushbytes 0x6467a9bc // method "RootPosted(byte[32],uint64,uint64,uint64)"
+    swap
+    concat
+    log
+    // contracts/nodelink_protocol.py:289
+    // @arc4.abimethod
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.deposit_commitment[routing]() -> void:
+deposit_commitment:
+    // contracts/nodelink_protocol.py:313-314
+    // # --------------------------------------------------------------- deposit
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    dup
+    txna ApplicationArgs 2
+    dup
+    cover 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    dup
+    cover 2
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    cover 4
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // contracts/nodelink_protocol.py:324
+    // assert self.bootstrapped.value, "not bootstrapped"
+    intc_1 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    assert // not bootstrapped
+    // contracts/nodelink_protocol.py:325
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:326
+    // assert_field_element(commitment)
+    dig 2
+    callsub assert_field_element
+    // contracts/nodelink_protocol.py:327
+    // assert_valid_tier(declared_tier)
+    dig 1
+    callsub assert_valid_tier
+    // contracts/nodelink_protocol.py:328
+    // assert_mbr_payment(mbr_payment, UInt64(LEAF_BOX_MBR))
+    pushint 23700
+    callsub assert_mbr_payment
+    // contracts/nodelink_protocol.py:329
+    // assert commitment not in self.leaves, "commitment already deposited"
+    pushbytes 0x6c6561665f
+    uncover 2
+    concat
+    dup
+    cover 4
+    box_len
+    bury 1
+    !
+    assert // commitment already deposited
+    // contracts/nodelink_protocol.py:331
+    // sender = Txn.sender
+    txn Sender
+    swap
+    // contracts/nodelink_protocol.py:151
+    // if tier == 1:
+    intc_0 // 1
+    ==
+    bz deposit_commitment_after_if_else@10
+    // contracts/nodelink_protocol.py:152
+    // return UInt64(TIER_SCOUT_MIN)
+    pushint 1000000
+
+deposit_commitment_after_inlined_contracts.nodelink_protocol.tier_threshold@17:
+    // contracts/nodelink_protocol.py:333-335
+    // # Current spendable view: balance after this group's MBR payment is debited,
+    // # so add it back (the MBR is a refundable deposit, not a loss of stake).
+    // current = sender.balance + mbr_payment.amount if mbr_payment.sender == sender else sender.balance
+    dig 3
+    gtxns Sender
+    dig 2
+    ==
+    bz deposit_commitment_ternary_false@3
+    dig 1
+    acct_params_get AcctBalance
+    assert // account funded
+    uncover 4
+    gtxns Amount
+    +
+    cover 2
+
+deposit_commitment_ternary_merge@4:
+    // contracts/nodelink_protocol.py:336
+    // if self.testnet_skip_online_check.value:
+    intc_1 // 0
+    bytec 11 // "testnet_skip_online_check"
+    app_global_get_ex
+    assert // check self.testnet_skip_online_check exists
+    bz deposit_commitment_else_body@6
+    bury 1
+    swap
+
+deposit_commitment_after_if_else@7:
+    // contracts/nodelink_protocol.py:344
+    // assert effective >= threshold, "balance below declared tier threshold"
+    <=
+    assert // balance below declared tier threshold
+    // contracts/nodelink_protocol.py:346
+    // leaf_index = self._leaf_count(declared_tier)
+    dup
+    callsub _leaf_count
+    // contracts/nodelink_protocol.py:347
+    // self.leaf_counts.replace((declared_tier - 1) * 8, op.itob(leaf_index + 1))
+    swap
+    intc_0 // 1
+    -
+    intc_3 // 8
+    *
+    dig 1
+    intc_0 // 1
+    +
+    itob
+    bytec 9 // 0x6c6561665f636f756e7473
+    cover 2
+    box_replace
+    // contracts/nodelink_protocol.py:348
+    // self.leaves[commitment] = LeafInfo(arc4.UInt64(declared_tier), arc4.UInt64(leaf_index))
+    itob
+    uncover 2
+    dup
+    cover 2
+    dig 1
+    concat
+    uncover 3
+    swap
+    box_put
+    // contracts/nodelink_protocol.py:350-354
+    // LeafDeposited(
+    //     Bytes32.from_bytes(commitment),
+    //     arc4.UInt64(declared_tier),
+    //     arc4.UInt64(leaf_index),
+    // )
+    cover 2
+    concat
+    dig 1
+    concat
+    // contracts/nodelink_protocol.py:349-355
+    // arc4.emit(
+    //     LeafDeposited(
+    //         Bytes32.from_bytes(commitment),
+    //         arc4.UInt64(declared_tier),
+    //         arc4.UInt64(leaf_index),
+    //     )
+    // )
+    pushbytes 0xb7383d55 // method "LeafDeposited(byte[32],uint64,uint64)"
+    swap
+    concat
+    log
+    // contracts/nodelink_protocol.py:313-314
+    // # --------------------------------------------------------------- deposit
+    // @arc4.abimethod
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+deposit_commitment_else_body@6:
+    // contracts/nodelink_protocol.py:339-341
+    // # Online stake as of the balance round (320 rounds ago). Using it resists
+    // # flash-borrowed balances and proves the account is participating.
+    // online_stake, is_online = op.VoterParamsGet.voter_balance(sender)
+    swap
+    voter_params_get VoterBalance
+    // contracts/nodelink_protocol.py:342
+    // assert is_online, "sender is not an online consensus participant"
+    assert // sender is not an online consensus participant
+    // contracts/nodelink_protocol.py:343
+    // effective = online_stake if online_stake < current else current
+    dup
+    uncover 3
+    dup
+    cover 2
+    <
+    swap
+    cover 2
+    select
+    b deposit_commitment_after_if_else@7
+
+deposit_commitment_ternary_false@3:
+    uncover 3
+    pop
+    // contracts/nodelink_protocol.py:333-335
+    // # Current spendable view: balance after this group's MBR payment is debited,
+    // # so add it back (the MBR is a refundable deposit, not a loss of stake).
+    // current = sender.balance + mbr_payment.amount if mbr_payment.sender == sender else sender.balance
+    dig 1
+    acct_params_get AcctBalance
+    assert // account funded
+    cover 2
+    b deposit_commitment_ternary_merge@4
+
+deposit_commitment_after_if_else@10:
+    // contracts/nodelink_protocol.py:153
+    // if tier == 2:
+    dig 1
+    pushint 2
+    ==
+    bz deposit_commitment_after_if_else@12
+    // contracts/nodelink_protocol.py:154
+    // return UInt64(TIER_GUARDIAN_MIN)
+    pushint 30000000000
+    // contracts/nodelink_protocol.py:332
+    // threshold = tier_threshold(declared_tier)
+    b deposit_commitment_after_inlined_contracts.nodelink_protocol.tier_threshold@17
+
+deposit_commitment_after_if_else@12:
+    // contracts/nodelink_protocol.py:155
+    // if tier == 3:
+    dig 1
+    pushint 3
+    ==
+    bz deposit_commitment_after_if_else@14
+    // contracts/nodelink_protocol.py:156
+    // return UInt64(TIER_PILLAR_MIN)
+    pushint 100000000000
+    // contracts/nodelink_protocol.py:332
+    // threshold = tier_threshold(declared_tier)
+    b deposit_commitment_after_inlined_contracts.nodelink_protocol.tier_threshold@17
+
+deposit_commitment_after_if_else@14:
+    // contracts/nodelink_protocol.py:157
+    // if tier == 4:
+    dig 1
+    pushint 4
+    ==
+    bz deposit_commitment_after_if_else@16
+    // contracts/nodelink_protocol.py:158
+    // return UInt64(TIER_SOVEREIGN_MIN)
+    pushint 500000000000
+    // contracts/nodelink_protocol.py:332
+    // threshold = tier_threshold(declared_tier)
+    b deposit_commitment_after_inlined_contracts.nodelink_protocol.tier_threshold@17
+
+deposit_commitment_after_if_else@16:
+    // contracts/nodelink_protocol.py:159
+    // assert tier == 5, "invalid tier"
+    dig 1
+    pushint 5
+    ==
+    assert // invalid tier
+    // contracts/nodelink_protocol.py:160
+    // return UInt64(TIER_MILLIONAIRE_MIN)
+    pushint 1000000000000
+    // contracts/nodelink_protocol.py:332
+    // threshold = tier_threshold(declared_tier)
+    b deposit_commitment_after_inlined_contracts.nodelink_protocol.tier_threshold@17
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.claim_status[routing]() -> void:
+claim_status:
+    pushbytes ""
+    // contracts/nodelink_protocol.py:358-359
+    // # ----------------------------------------------------------------- claim
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    dup
+    extract 2 0
+    dup
+    cover 3
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    cover 4
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // contracts/nodelink_protocol.py:370
+    // assert self.bootstrapped.value, "not bootstrapped"
+    intc_1 // 0
+    bytec_2 // "bootstrapped"
+    app_global_get_ex
+    assert // check self.bootstrapped exists
+    assert // not bootstrapped
+    // contracts/nodelink_protocol.py:371
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:372
+    // assert proof.length == PROOF_SIZE, "proof must be 256 bytes"
+    uncover 2
+    len
+    pushint 256
+    ==
+    assert // proof must be 256 bytes
+    // contracts/nodelink_protocol.py:373
+    // assert public_inputs.length == PUBLIC_INPUTS_SIZE, "public inputs must be 160 bytes"
+    len
+    pushint 160
+    ==
+    assert // public inputs must be 160 bytes
+    // contracts/nodelink_protocol.py:375
+    // nullifier_hash = op.extract(public_inputs, 0, 32)
+    dup
+    extract 2 32
+    cover 4
+    // contracts/nodelink_protocol.py:376
+    // tier_word = op.extract(public_inputs, 32, 32)
+    dup
+    extract 34 32
+    swap
+    // contracts/nodelink_protocol.py:377
+    // root = op.extract(public_inputs, 64, 32)
+    dup
+    extract 66 32
+    swap
+    // contracts/nodelink_protocol.py:378
+    // hot_hi = op.extract(public_inputs, 96, 32)
+    dup
+    extract 98 32
+    swap
+    // contracts/nodelink_protocol.py:379
+    // hot_lo = op.extract(public_inputs, 128, 32)
+    extract 130 32
+    // contracts/nodelink_protocol.py:380
+    // for i in urange(NUM_PUBLIC_SIGNALS):
+    intc_1 // 0
+
+claim_status_for_header@2:
+    // contracts/nodelink_protocol.py:380
+    // for i in urange(NUM_PUBLIC_SIGNALS):
+    dup
+    pushint 5
+    <
+    bz claim_status_after_for@5
+    // contracts/nodelink_protocol.py:381
+    // assert_field_element(op.extract(public_inputs, i * 32, 32))
+    dup
+    intc_2 // 32
+    *
+    dig 7
+    swap
+    intc_2 // 32
+    extract3
+    callsub assert_field_element
+    // contracts/nodelink_protocol.py:380
+    // for i in urange(NUM_PUBLIC_SIGNALS):
+    intc_0 // 1
+    +
+    b claim_status_for_header@2
+
+claim_status_after_for@5:
+    pop
+    // contracts/nodelink_protocol.py:383-386
+    // # 1) Front-running resistance: proof is bound to the hot wallet = Txn.Sender.
+    // #    hi/lo are 128-bit limbs (upper 16 bytes of each word must be zero), so
+    // #    hi||lo reconstructs the 32-byte public key injectively.
+    // assert op.extract(hot_hi, 0, 16) == op.bzero(16), "hotWalletHi exceeds 128 bits"
+    swap
+    dup
+    extract 0 16
+    pushint 16
+    bzero
+    swap
+    dig 1
+    ==
+    assert // hotWalletHi exceeds 128 bits
+    // contracts/nodelink_protocol.py:387
+    // assert op.extract(hot_lo, 0, 16) == op.bzero(16), "hotWalletLo exceeds 128 bits"
+    uncover 2
+    dup
+    cover 2
+    extract 0 16
+    ==
+    assert // hotWalletLo exceeds 128 bits
+    // contracts/nodelink_protocol.py:388
+    // assert op.extract(hot_hi, 16, 16) + op.extract(hot_lo, 16, 16) == Txn.sender.bytes, (
+    swap
+    extract 16 16
+    swap
+    extract 16 16
+    concat
+    txn Sender
+    ==
+    // contracts/nodelink_protocol.py:388-390
+    // assert op.extract(hot_hi, 16, 16) + op.extract(hot_lo, 16, 16) == Txn.sender.bytes, (
+    //     "proof is bound to a different hot wallet"
+    // )
+    assert // proof is bound to a different hot wallet
+    // contracts/nodelink_protocol.py:392-393
+    // # 2) Tier is a small integer 1..5.
+    // assert op.extract(tier_word, 0, 24) == op.bzero(24), "tier out of range"
+    swap
+    dup
+    extract 0 24
+    pushint 24
+    bzero
+    ==
+    assert // tier out of range
+    pushint 24
+    // contracts/nodelink_protocol.py:394
+    // tier = op.btoi(op.extract(tier_word, 24, 8))
+    extract_uint64
+    dup
+    cover 4
+    // contracts/nodelink_protocol.py:395
+    // assert_valid_tier(tier)
+    dup
+    callsub assert_valid_tier
+    // contracts/nodelink_protocol.py:397-398
+    // # 3) Root must be a recently posted root OF THE SAME TIER tree.
+    // assert self._is_known_root(root, tier), "unknown root for this tier"
+    callsub _is_known_root
+    assert // unknown root for this tier
+    // contracts/nodelink_protocol.py:400-401
+    // # 4) Replay protection.
+    // assert nullifier_hash not in self.nullifiers, "nullifier already used"
+    pushbytes 0x6e756c6c69666965725f
+    uncover 5
+    concat
+    dup
+    box_len
+    bury 1
+    !
+    assert // nullifier already used
+    // contracts/nodelink_protocol.py:403-404
+    // # 5) MBR for the new boxes.
+    // required_mbr = UInt64(NULLIFIER_BOX_MBR)
+    pushint 22500
+    bury 6
+    // contracts/nodelink_protocol.py:405
+    // if Txn.sender not in self.hot_status:
+    bytec_3 // 0x686f745f7374617475735f
+    txn Sender
+    concat
+    box_len
+    bury 1
+    bnz claim_status_after_if_else@7
+    // contracts/nodelink_protocol.py:406
+    // required_mbr += HOT_STATUS_BOX_MBR
+    pushint 45800
+    bury 6
+
+claim_status_after_if_else@7:
+    // contracts/nodelink_protocol.py:407
+    // assert_mbr_payment(mbr_payment, required_mbr)
+    swap
+    dig 5
+    callsub assert_mbr_payment
+
+claim_status_while_top@9:
+    pushint 73010
+    global OpcodeBudget
+    >
+    bz claim_status_after_while@14
+    itxn_begin
+    pushint 6 // appl
+    itxn_field TypeEnum
+    pushint 5 // DeleteApplication
+    itxn_field OnCompletion
+    bytec 12 // 0x068101
+    itxn_field ApprovalProgram
+    bytec 12 // 0x068101
+    itxn_field ClearStateProgram
+    intc_1 // 0
+    itxn_field Fee
+    itxn_submit
+    b claim_status_while_top@9
+
+claim_status_after_while@14:
+    // contracts/nodelink_protocol.py:206
+    // a = op.extract(proof, 0, 64)
+    uncover 3
+    dup
+    extract 2 64
+    dup
+    uncover 2
+    // contracts/nodelink_protocol.py:207
+    // b = op.extract(proof, 64, 128)
+    dup
+    extract 66 128
+    cover 4
+    // contracts/nodelink_protocol.py:208
+    // c = op.extract(proof, 192, 64)
+    extract 194 64
+    swap
+    // contracts/verifier_key.py:36-37
+    // # IC[1..5] concatenated (5 x 64 bytes) for ec_multi_scalar_mul
+    // return Bytes.from_hex("080546248ff027a220672853d1dd93b41869a1c3a6655d8f2c16f5ba2b5cb4880555cc15f582d8be5656e51e0d2ac485ede74445da240c30a7a97caebfaf00b005db015d3289fffb9d4b87c57cb2eb9a6c6205e281d902681e46d89f147a68a92c058a1fe0867c4013250f9a42b3ee2003f96378d9ff4947b5d141db6b40e83c14f5ca17adc1bb009abd65cb3869d51413933e7371b081090ed5dbad10b743e80bbcdf1fff75b927b19f651e1e77651f412bd75b75c95ea3f54a474423abc5e310628b60696ef1c3c0ff1cd1f9ffbc218ff4cad582e7160f4683b04847d2a88f2339340b5b2d3b0ea2a343f448d8681753eed9583ea73f0ed0cf869dfdbf6c572e6861dc6c0dc55c82958f0603214e69603cb1858ef095bec1e810d13ef06807108c0c0aefbaf327a4c5304e26ba0e35bd670f310cbdd613f420c20dee80597d")
+    pushbytes 0x080546248ff027a220672853d1dd93b41869a1c3a6655d8f2c16f5ba2b5cb4880555cc15f582d8be5656e51e0d2ac485ede74445da240c30a7a97caebfaf00b005db015d3289fffb9d4b87c57cb2eb9a6c6205e281d902681e46d89f147a68a92c058a1fe0867c4013250f9a42b3ee2003f96378d9ff4947b5d141db6b40e83c14f5ca17adc1bb009abd65cb3869d51413933e7371b081090ed5dbad10b743e80bbcdf1fff75b927b19f651e1e77651f412bd75b75c95ea3f54a474423abc5e310628b60696ef1c3c0ff1cd1f9ffbc218ff4cad582e7160f4683b04847d2a88f2339340b5b2d3b0ea2a343f448d8681753eed9583ea73f0ed0cf869dfdbf6c572e6861dc6c0dc55c82958f0603214e69603cb1858ef095bec1e810d13ef06807108c0c0aefbaf327a4c5304e26ba0e35bd670f310cbdd613f420c20dee80597d
+    // contracts/nodelink_protocol.py:210
+    // vk_x = op.EllipticCurve.scalar_mul_multi(op.EC.BN254g1, vk_ic_rest_g1(), public_inputs)
+    uncover 6
+    ec_multi_scalar_mul BN254g1
+    // contracts/verifier_key.py:31
+    // return Bytes.from_hex("276848ce9629794d1441152ab262708c9f54f72281138d6142518585ab7d32390946be5b21c0a97ca455ddcbf107e5ac740c277dd807416abd9820322ec07cc3")
+    pushbytes 0x276848ce9629794d1441152ab262708c9f54f72281138d6142518585ab7d32390946be5b21c0a97ca455ddcbf107e5ac740c277dd807416abd9820322ec07cc3
+    // contracts/nodelink_protocol.py:211
+    // vk_x = op.EllipticCurve.add(op.EC.BN254g1, vk_ic0_g1(), vk_x)
+    swap
+    ec_add BN254g1
+    swap
+    // contracts/nodelink_protocol.py:191
+    // x = op.extract(point, 0, 32)
+    dup
+    extract 0 32
+    swap
+    // contracts/nodelink_protocol.py:192
+    // y = BigUInt.from_bytes(op.extract(point, 32, 32))
+    extract 32 32
+    dup
+    // contracts/nodelink_protocol.py:193
+    // if y == 0:
+    pushbytes 0x
+    b==
+    bz claim_status_after_if_else@18
+    popn 2
+    uncover 2
+
+claim_status_after_inlined_contracts.nodelink_protocol.negate_g1@19:
+    // contracts/verifier_key.py:11
+    // return Bytes.from_hex("1bf2d2bea33615ca0146f43c73b193f9c1ee46db5176a1c2851f2059f5f94b000564d88ee4ac7c58b37763babaf7f6d24c39b31fb0b4f4b4b0a723a194113254")
+    pushbytes 0x1bf2d2bea33615ca0146f43c73b193f9c1ee46db5176a1c2851f2059f5f94b000564d88ee4ac7c58b37763babaf7f6d24c39b31fb0b4f4b4b0a723a194113254
+    // contracts/nodelink_protocol.py:213
+    // g1_points = negate_g1(a) + vk_alpha_g1() + vk_x + c
+    concat
+    swap
+    concat
+    swap
+    concat
+    // contracts/nodelink_protocol.py:214
+    // g2_points = b + vk_beta_g2() + vk_gamma_g2() + vk_delta_g2()
+    uncover 2
+    pushbytes 0x06724433778f25440e4adae4f8cd062a4cd1d3828069e9613cc47f283b5b31ba08da5eb083bd95671c644461df627040f1f86062d58ce21c58e27594261ed7bc16302ff8e66562ba84ac04357886db108a3963cff3b9776e09970febb2f779881989f246d87f2dcbe89650556eda9a1af2a9afdd9d473daf04eb8033a98bbabf1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c212c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa090689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b256af52b1882489b42df09241eca5cfafff82c842c3dde4c0c4be830eda256d5063b2510ae97e3e12ecb35b6603c4053c571aa0a394452633732fb5889e07f2b00fe5d4d4498a0a88ae53ecc27b49b82dab13a6eb52caa1307d91670d330c7f50dd58dbb3ff10eab1f43edb33084715a34cd9c51f7aeef5f2d9f0e0535f4a726
+    concat
+    // contracts/nodelink_protocol.py:215
+    // return op.EllipticCurve.pairing_check(op.EC.BN254g1, g1_points, g2_points)
+    ec_pairing_check BN254g1
+    // contracts/nodelink_protocol.py:412
+    // assert verify_groth16(proof, public_inputs), "invalid proof"
+    assert // invalid proof
+    // contracts/nodelink_protocol.py:414-415
+    // # Effects
+    // self.nullifiers[nullifier_hash] = Global.round
+    global Round
+    itob
+    box_put
+    // contracts/nodelink_protocol.py:416
+    // expiry = Global.round + self.status_ttl_rounds.value
+    global Round
+    intc_1 // 0
+    bytec 10 // "status_ttl_rounds"
+    app_global_get_ex
+    assert // check self.status_ttl_rounds exists
+    +
+    // contracts/nodelink_protocol.py:417
+    // status = HotStatus(arc4.UInt8(tier), arc4.UInt64(expiry))
+    swap
+    itob
+    dup
+    bitlen
+    intc_3 // 8
+    <=
+    assert // overflow
+    dup
+    extract 7 1
+    uncover 2
+    itob
+    swap
+    dig 1
+    concat
+    // contracts/nodelink_protocol.py:418
+    // self.hot_status[Txn.sender] = status
+    bytec_3 // 0x686f745f7374617475735f
+    txn Sender
+    concat
+    dig 1
+    box_put
+    // contracts/nodelink_protocol.py:419
+    // self.total_claims.value += 1
+    intc_1 // 0
+    bytec 7 // "total_claims"
+    app_global_get_ex
+    assert // check self.total_claims exists
+    intc_0 // 1
+    +
+    bytec 7 // "total_claims"
+    swap
+    app_global_put
+    // contracts/nodelink_protocol.py:420
+    // arc4.emit(StatusClaimed(arc4.UInt64(tier), arc4.UInt64(expiry)))
+    cover 2
+    concat
+    pushbytes 0x49c4dead // method "StatusClaimed(uint64,uint64)"
+    swap
+    concat
+    log
+    // contracts/nodelink_protocol.py:358-359
+    // # ----------------------------------------------------------------- claim
+    // @arc4.abimethod
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+claim_status_after_if_else@18:
+    uncover 4
+    pop
+    // contracts/nodelink_protocol.py:195
+    // neg_y = BigUInt(BN254_P) - y
+    pushbytes 0x30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47
+    swap
+    b-
+    // contracts/nodelink_protocol.py:196
+    // return x + (op.bzero(32) | neg_y.bytes)
+    intc_2 // 32
+    bzero
+    b|
+    concat
+    // contracts/nodelink_protocol.py:213
+    // g1_points = negate_g1(a) + vk_alpha_g1() + vk_x + c
+    b claim_status_after_inlined_contracts.nodelink_protocol.negate_g1@19
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.reveal_public_profile[routing]() -> void:
+reveal_public_profile:
+    // contracts/nodelink_protocol.py:423-424
+    // # ----------------------------------------------------- public profile opt-in
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txn GroupIndex
+    intc_0 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_0 // pay
+    ==
+    assert // transaction type is pay
+    // contracts/nodelink_protocol.py:435
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:436
+    // assert cold_address != Txn.sender, "cold and hot must differ"
+    dig 1
+    txn Sender
+    !=
+    assert // cold and hot must differ
+    // contracts/nodelink_protocol.py:437
+    // assert mbr_payment.sender == cold_address, "cold wallet must co-sign (pay MBR)"
+    dup
+    gtxns Sender
+    dig 2
+    ==
+    assert // cold wallet must co-sign (pay MBR)
+    // contracts/nodelink_protocol.py:438
+    // assert_mbr_payment(mbr_payment, UInt64(PUBLIC_PROFILE_BOX_MBR))
+    intc 4 // 34100
+    callsub assert_mbr_payment
+    // contracts/nodelink_protocol.py:439
+    // status, exists = self.hot_status.maybe(Txn.sender)
+    bytec_3 // 0x686f745f7374617475735f
+    txn Sender
+    concat
+    box_get
+    // contracts/nodelink_protocol.py:440
+    // assert exists, "no NodeLink status"
+    assert // no NodeLink status
+    // contracts/nodelink_protocol.py:441
+    // assert status.expiry_round.native > Global.round, "status expired"
+    intc_0 // 1
+    extract_uint64
+    global Round
+    >
+    assert // status expired
+    // contracts/nodelink_protocol.py:442
+    // assert Txn.sender not in self.public_profile, "profile already public"
+    bytec 4 // 0x7075626c69635f70726f66696c655f
+    txn Sender
+    concat
+    box_len
+    bury 1
+    !
+    assert // profile already public
+    // contracts/nodelink_protocol.py:443
+    // self.public_profile[Txn.sender] = arc4.Address(cold_address)
+    bytec 4 // 0x7075626c69635f70726f66696c655f
+    txn Sender
+    concat
+    dig 1
+    box_put
+    // contracts/nodelink_protocol.py:444
+    // arc4.emit(ProfileRevealed(arc4.Address(Txn.sender), arc4.Address(cold_address)))
+    txn Sender
+    swap
+    concat
+    pushbytes 0x6db18fc3 // method "ProfileRevealed(address,address)"
+    swap
+    concat
+    log
+    // contracts/nodelink_protocol.py:423-424
+    // # ----------------------------------------------------- public profile opt-in
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.hide_public_profile[routing]() -> void:
+hide_public_profile:
+    // contracts/nodelink_protocol.py:450
+    // assert_no_authority_change_current()
+    callsub assert_no_authority_change_current
+    // contracts/nodelink_protocol.py:451
+    // cold, exists = self.public_profile.maybe(Txn.sender)
+    bytec 4 // 0x7075626c69635f70726f66696c655f
+    txn Sender
+    concat
+    box_get
+    // contracts/nodelink_protocol.py:452
+    // assert exists, "profile is not public"
+    assert // profile is not public
+    // contracts/nodelink_protocol.py:453
+    // del self.public_profile[Txn.sender]
+    bytec 4 // 0x7075626c69635f70726f66696c655f
+    txn Sender
+    concat
+    box_del
+    pop
+    // contracts/nodelink_protocol.py:454-458
+    // itxn.Payment(
+    //     receiver=cold.native,
+    //     amount=PUBLIC_PROFILE_BOX_MBR,
+    //     fee=0,
+    // ).submit()
+    itxn_begin
+    // contracts/nodelink_protocol.py:456
+    // amount=PUBLIC_PROFILE_BOX_MBR,
+    intc 4 // 34100
+    itxn_field Amount
+    itxn_field Receiver
+    // contracts/nodelink_protocol.py:454
+    // itxn.Payment(
+    intc_0 // pay
+    itxn_field TypeEnum
+    // contracts/nodelink_protocol.py:457
+    // fee=0,
+    intc_1 // 0
+    itxn_field Fee
+    // contracts/nodelink_protocol.py:454-458
+    // itxn.Payment(
+    //     receiver=cold.native,
+    //     amount=PUBLIC_PROFILE_BOX_MBR,
+    //     fee=0,
+    // ).submit()
+    itxn_submit
+    // contracts/nodelink_protocol.py:459
+    // arc4.emit(ProfileHidden(arc4.Address(Txn.sender)))
+    pushbytes 0x693e0959 // method "ProfileHidden(address)"
+    txn Sender
+    concat
+    log
+    // contracts/nodelink_protocol.py:446
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.get_status[routing]() -> void:
+get_status:
+    // contracts/nodelink_protocol.py:461-462
+    // # ------------------------------------------------------------- read-only
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // contracts/nodelink_protocol.py:464
+    // status, exists = self.hot_status.maybe(hot)
+    bytec_3 // 0x686f745f7374617475735f
+    swap
+    concat
+    box_get
+    // contracts/nodelink_protocol.py:465
+    // if not exists:
+    bnz get_status_after_if_else@3
+    pop
+    // contracts/nodelink_protocol.py:466
+    // return StatusView(arc4.UInt64(0), arc4.UInt64(0), arc4.Bool(False))
+    pushbytes 0x0000000000000000000000000000000000
+
+get_status_after_inlined_contracts.nodelink_protocol.NodeLinkProtocol.get_status@4:
+    // contracts/nodelink_protocol.py:461-462
+    // # ------------------------------------------------------------- read-only
+    // @arc4.abimethod(readonly=True)
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+get_status_after_if_else@3:
+    // contracts/nodelink_protocol.py:468
+    // arc4.UInt64(status.tier.native),
+    dup
+    intc_1 // 0
+    getbyte
+    itob
+    // contracts/nodelink_protocol.py:469
+    // status.expiry_round,
+    dig 1
+    extract 1 8
+    // contracts/nodelink_protocol.py:470
+    // arc4.Bool(status.expiry_round.native > Global.round),
+    uncover 2
+    // contracts/nodelink_protocol.py:469
+    // status.expiry_round,
+    intc_0 // 1
+    // contracts/nodelink_protocol.py:470
+    // arc4.Bool(status.expiry_round.native > Global.round),
+    extract_uint64
+    global Round
+    >
+    pushbytes 0x00
+    intc_1 // 0
+    uncover 2
+    setbit
+    // contracts/nodelink_protocol.py:467-471
+    // return StatusView(
+    //     arc4.UInt64(status.tier.native),
+    //     status.expiry_round,
+    //     arc4.Bool(status.expiry_round.native > Global.round),
+    // )
+    cover 2
+    concat
+    swap
+    concat
+    // contracts/nodelink_protocol.py:461-462
+    // # ------------------------------------------------------------- read-only
+    // @arc4.abimethod(readonly=True)
+    b get_status_after_inlined_contracts.nodelink_protocol.NodeLinkProtocol.get_status@4
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.is_known_root[routing]() -> void:
+is_known_root:
+    // contracts/nodelink_protocol.py:473
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    intc_1 // 0
+    extract_uint16 // on error: invalid array length header
+    pushint 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contracts/nodelink_protocol.py:475
+    // return self._is_known_root(root, tier)
+    callsub _is_known_root
+    // contracts/nodelink_protocol.py:473
+    // @arc4.abimethod(readonly=True)
+    pushbytes 0x00
+    intc_1 // 0
+    uncover 2
+    setbit
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol.leaf_count[routing]() -> void:
+leaf_count:
+    // contracts/nodelink_protocol.py:477
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contracts/nodelink_protocol.py:479
+    // assert_valid_tier(tier)
+    dup
+    callsub assert_valid_tier
+    // contracts/nodelink_protocol.py:480
+    // return self._leaf_count(tier)
+    callsub _leaf_count
+    // contracts/nodelink_protocol.py:477
+    // @arc4.abimethod(readonly=True)
+    itob
+    bytec_0 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_0 // 1
+    return
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol._leaf_count(tier: uint64) -> uint64:
+_leaf_count:
+    // contracts/nodelink_protocol.py:482-484
+    // # ------------------------------------------------------------- internals
+    // @subroutine
+    // def _leaf_count(self, tier: UInt64) -> UInt64:
+    proto 1 1
+    // contracts/nodelink_protocol.py:485
+    // return op.btoi(self.leaf_counts.extract((tier - 1) * 8, 8))
+    frame_dig -1
+    intc_0 // 1
+    -
+    intc_3 // 8
+    *
+    bytec 9 // 0x6c6561665f636f756e7473
+    swap
+    intc_3 // 8
+    box_extract
+    btoi
+    retsub
+
+
+// contracts.nodelink_protocol.NodeLinkProtocol._is_known_root(root: bytes, tier: uint64) -> uint64:
+_is_known_root:
+    // contracts/nodelink_protocol.py:487-488
+    // @subroutine
+    // def _is_known_root(self, root: Bytes, tier: UInt64) -> bool:
+    proto 2 1
+    intc_1 // 0
+    // contracts/nodelink_protocol.py:489
+    // if root.length != 32:
+    frame_dig -2
+    len
+    intc_2 // 32
+    !=
+    bz _is_known_root_after_if_else@2
+    // contracts/nodelink_protocol.py:490
+    // return False
+    intc_1 // 0
+    swap
+    retsub
+
+_is_known_root_after_if_else@2:
+    // contracts/nodelink_protocol.py:491
+    // for i in urange(ROOT_HISTORY_SIZE):
+    intc_1 // 0
+
+_is_known_root_for_header@3:
+    // contracts/nodelink_protocol.py:491
+    // for i in urange(ROOT_HISTORY_SIZE):
+    dup
+    intc_2 // 32
+    <
+    bz _is_known_root_after_for@9
+    // contracts/nodelink_protocol.py:492
+    // slot = self.valid_roots.extract(i * ROOT_SLOT_SIZE, ROOT_SLOT_SIZE)
+    dup
+    pushint 48
+    *
+    bytec 8 // 0x76616c69645f726f6f7473
+    swap
+    pushint 48
+    box_extract
+    dup
+    frame_bury 0
+    // contracts/nodelink_protocol.py:493
+    // if op.extract(slot, 0, 32) == root and op.extract_uint64(slot, 32) == tier:
+    extract 0 32
+    frame_dig -2
+    ==
+    bz _is_known_root_after_if_else@7
+    frame_dig 0
+    intc_2 // 32
+    extract_uint64
+    frame_dig -1
+    ==
+    bz _is_known_root_after_if_else@7
+    // contracts/nodelink_protocol.py:494
+    // return True
+    intc_0 // 1
+    frame_bury 0
+    retsub
+
+_is_known_root_after_if_else@7:
+    // contracts/nodelink_protocol.py:491
+    // for i in urange(ROOT_HISTORY_SIZE):
+    intc_0 // 1
+    +
+    b _is_known_root_for_header@3
+
+_is_known_root_after_for@9:
+    // contracts/nodelink_protocol.py:495
+    // return False
+    intc_1 // 0
+    frame_bury 0
+    retsub

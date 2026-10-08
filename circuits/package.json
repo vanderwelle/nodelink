@@ -1,0 +1,19 @@
+{
+  "name": "@nodelink/circuits",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "test": "tsx test/prove_and_verify.ts"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.6"
+  },
+  "devDependencies": {
+    "@nodelink/shared": "*",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
