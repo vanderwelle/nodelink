@@ -5,8 +5,8 @@ import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NodeLink — private perks for Algorand node runners",
-  description: "Zero-knowledge identity, onboarding guide and HUD for Algorand consensus node runners.",
+  title: "NodeLink — the hub for Algorand node runners",
+  description: "Node health, rewards, perks, setup and community for Algorand node runners.",
 };
 
 export const viewport: Viewport = { themeColor: "#05070d", colorScheme: "dark" };

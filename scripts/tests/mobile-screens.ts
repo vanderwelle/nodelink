@@ -7,7 +7,7 @@ import { chromium, devices } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "https://nodelink-ten.vercel.app";
 const OUT = process.env.OUT_DIR ?? "/workspace";
-const PAGES = ["/", "/link", "/dashboard", "/start-node", "/leaderboard"] as const;
+const PAGES = ["/", "/health", "/rewards", "/perks", "/setup", "/community", "/link", "/start-node", "/leaderboard"] as const;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "/usr/bin/google-chrome", headless: true });
 const ctx = await browser.newContext({ ...devices["iPhone 13"], viewport: { width: 390, height: 844 } });
@@ -34,6 +34,7 @@ for (const p of PAGES) {
 }
 // wallet modal on mobile
 await page.goto(BASE + "/", { waitUntil: "networkidle" });
+await page.getByRole("button", { name: "Menu" }).click();
 await page.getByRole("button", { name: /connect wallet/i }).first().click();
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${OUT}/nodelink-mobile-wallet-modal.png` });

@@ -1,7 +1,7 @@
 /**
  * Full browser E2E on LocalNet with headless Chrome (playwright-core):
  *   /link step 1 (cold: deposit + encrypted backup download) -> root updater ->
- *   /link step 2 (hot: import backup, Merkle path, IN-BROWSER snarkjs proof, claim) -> /dashboard
+ *   /link step 2 (hot: import backup, Merkle path, IN-BROWSER snarkjs proof, claim) -> hub tabs (/health, /perks)
  *
  * Prereqs: `algokit localnet start`, a LocalNet deployment (NODELINK_NETWORK=localnet npm run deploy),
  * and the frontend dev server started with NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id>.
@@ -95,15 +95,19 @@ try {
   step(`hot wallet activated (browser proof + on-chain verify in ${((Date.now() - t0) / 1000).toFixed(1)} s)`);
   await page.screenshot({ path: resolve(OUT, "link-step2.png"), fullPage: true });
 
-  step("dashboard shows rank + cold telemetry from local session");
+  step("hub health tab shows badge + cold telemetry from local session; perks tab unlocked");
   // client-side navigation: the test-only Mnemonic wallet does not persist across full reloads
-  await page.getByRole("link", { name: "Open your HUD" }).click();
+  await page.getByRole("link", { name: "Open your node hub" }).click();
   await page.getByText("Tier 1 · 1.00x reward multiplier").waitFor({ timeout: 30_000 });
+  await page.getByText("from private link").waitFor();
+  await page.screenshot({ path: resolve(OUT, "hub-health.png"), fullPage: true });
+  await page.getByRole("tab", { name: "Perks" }).click();
   await page.getByText("Ecosystem Launchpad").waitFor();
-  await page.screenshot({ path: resolve(OUT, "dashboard.png"), fullPage: true });
+  await page.getByText("Scout perks unlocked").waitFor();
 
   step("leaderboard renders (no public profiles yet)");
-  await page.getByRole("link", { name: "Leaderboard" }).first().click();
+  await page.getByRole("tab", { name: "Community" }).click();
+  await page.getByRole("link", { name: /Full leaderboard/ }).click();
   await page.getByText(/No public profiles yet|Community leaderboard/).first().waitFor();
   console.log("\nBROWSER E2E (LocalNet): ALL STEPS PASSED");
 } catch (err) {

@@ -1,6 +1,7 @@
 # NodeLink
 
-Zero-knowledge identity dApp, onboarding guide and HUD for **Algorand consensus node runners**.
+The everything app for **Algorand consensus node runners** — node health, rewards, perks, setup and community —
+with a zero-knowledge cold↔hot wallet link as quiet infrastructure underneath.
 A cold (node) wallet deposits an opaque commitment; a daily hot wallet later proves — with an
 in-browser Groth16 proof verified **on-chain with the AVM's native BN254 opcodes** — that it belongs
 to a node-runner tier, without revealing which cold wallet it is linked to.
@@ -34,9 +35,21 @@ hot wallet ── [MBR pay, claim_status(proof, signals)] ──► Groth16 veri
 | `frontend/public/zk/` | `node_membership.wasm` + `node_membership_final.zkey` (lazy-loaded with progress bars) |
 | `docs/screenshots/` | Screenshots captured by the browser E2E run |
 
-Frontend routes: `/` (landing, live network stats), `/dashboard` (private HUD), `/link` (2-step wizard),
-`/start-node` (node guide), `/leaderboard` (opt-in public profiles). API routes: `/api/merkle-path`,
-`/api/stats`, `/api/leaderboard`.
+Frontend routes: `/` is the **hub** — four square tiles (A–D) in a 2×2 grid plus a full-width bar (E), each
+opening a deep-linkable tab with a shared tab strip:
+
+| | Route | Live today | Placeholder (labelled in UI) |
+|---|---|---|---|
+| A | `/health` | online status, incentive eligibility, part-key expiry, last proposal/heartbeat, computed alerts, network sync (Nodely algod) | uptime %, node-side sync (needs node agent), push alerts |
+| B | `/rewards` | node balance, proposals + proposer payouts per day (30d, Nodely indexer `/v2/block-headers`, queried from the browser), realized APR | CSV export, projected APY, tier-multiplier earnings |
+| C | `/perks` | tier gating from the connected wallet's on-chain badge, filters | partner perks themselves (placeholder partners) |
+| D | `/setup` | addpartkey/keyreg/catchup commands pre-filled with the node address + current round, Lora keyreg wizard link, `/start-node` guide | — |
+| E | `/community` | opt-in leaderboard teaser, profile toggle, network stats | news feed is static sample content |
+
+The node address comes from the private link session (if this browser holds one) or a read-only
+"watch" address saved in localStorage. `/dashboard` redirects to `/health`. Other routes: `/link`
+(private 2-step wizard), `/start-node`, `/leaderboard`. API routes: `/api/merkle-path`, `/api/stats`,
+`/api/leaderboard`.
 
 ## Quick start
 

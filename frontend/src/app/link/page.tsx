@@ -414,7 +414,7 @@ function HotActivation() {
           <a className="inline-flex items-center gap-1 underline" href={explorerTx(done.txId)} target="_blank" rel="noreferrer">
             View transaction <ExternalLink className="h-3 w-3" />
           </a>{" "}
-          · <Link className="underline" href="/dashboard">Open your HUD</Link>
+          · <Link className="underline" href="/health">Open your node hub</Link>
         </Notice>
       )}
     </div>

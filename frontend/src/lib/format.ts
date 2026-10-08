@@ -19,6 +19,15 @@ export function roundsToDuration(rounds: bigint): string {
   return `~${hours}h ${minutes}m`;
 }
 
+/** "just now", "12m ago", "5h ago", "3d ago" from a round delta. */
+export function roundsAgo(rounds: bigint): string {
+  const s = Math.max(0, Number(rounds) * SECONDS_PER_ROUND);
+  if (s < 60) return "just now";
+  if (s < 3_600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86_400) return `${Math.floor(s / 3_600)}h ago`;
+  return `${Math.floor(s / 86_400)}d ago`;
+}
+
 export function errorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
   // surface the contract's assert message when present

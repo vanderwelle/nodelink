@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit -p .",
     "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts",
     "test:browser": "NODELINK_NETWORK=localnet tsx tests/browser.localnet.ts",
-    "test:mobile": "tsx tests/mobile-screens.ts"
+    "test:mobile": "tsx tests/mobile-screens.ts",
+    "test:hub": "tsx tests/hub-screens.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.2",

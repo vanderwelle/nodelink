@@ -28,6 +28,10 @@ const nextConfig: NextConfig = {
     for (const m of UNUSED_WALLET_SDKS) config.resolve.alias[m] = false;
     return config;
   },
+  async redirects() {
+    // the old private HUD is now split across the hub tabs
+    return [{ source: "/dashboard", destination: "/health", permanent: false }];
+  },
   async headers() {
     return [
       {

@@ -104,7 +104,7 @@ export default function StartNodePage() {
 
       <Notice tone="warn" title="Security reminders">
         Keep your cold wallet&apos;s spending key off the node — only participation keys live there. Renew participation keys before
-        they expire, and monitor heartbeats from the NodeLink HUD. Double-check commands against the official Algorand developer
+        they expire, and monitor heartbeats from the NodeLink Health tab. Double-check commands against the official Algorand developer
         docs for your OS version.
       </Notice>
     </div>

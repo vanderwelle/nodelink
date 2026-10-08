@@ -37,7 +37,7 @@ export default function LeaderboardPage() {
       </div>
       {error && <Notice tone="warn" title="Could not load leaderboard">{error}</Notice>}
       {entries === null && !error && <p className="text-sm text-gray-500">Loading…</p>}
-      {entries?.length === 0 && <Notice title="No public profiles yet">Be the first: toggle “Make Profile Public” in your HUD.</Notice>}
+      {entries?.length === 0 && <Notice title="No public profiles yet">Be the first: toggle “Make Profile Public” in the Community tab.</Notice>}
       {entries && entries.length > 0 && (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">

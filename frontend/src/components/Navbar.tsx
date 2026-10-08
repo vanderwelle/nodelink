@@ -6,12 +6,18 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NETWORK } from "@/lib/config";
 import { ConnectButton } from "./ConnectButton";
+import { SECTIONS } from "./hub/sections";
 
 const NAV = [
-  { href: "/dashboard", label: "HUD" },
-  { href: "/link", label: "Link Wizard" },
+  { href: "/", label: "Hub" },
+  ...SECTIONS.map((s) => ({ href: s.href, label: s.short })),
+] as const;
+
+/** Secondary destinations (mobile menu footer). */
+const MORE = [
+  { href: "/start-node", label: "Start a node" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/start-node", label: "Start a Node" },
+  { href: "/link", label: "Private link" },
 ] as const;
 
 export function Navbar() {
@@ -29,7 +35,7 @@ export function Navbar() {
             {NETWORK}
           </span>
         </Link>
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <Link
               key={n.href}
@@ -40,20 +46,27 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <ConnectButton />
         </div>
-        <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
+        <button className="lg:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </div>
       {open && (
-        <div className="border-t border-white/10 px-4 py-3 md:hidden">
+        <div className="border-t border-white/10 px-4 py-3 lg:hidden">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="block py-2 text-sm text-gray-300" onClick={() => setOpen(false)}>
+            <Link key={n.href} href={n.href} className={`block py-2 text-sm ${pathname === n.href ? "text-white" : "text-gray-300"}`} onClick={() => setOpen(false)}>
               {n.label}
             </Link>
           ))}
+          <div className="mt-2 flex flex-wrap gap-x-4 border-t border-white/10 pt-2">
+            {MORE.map((n) => (
+              <Link key={n.href} href={n.href} className="py-2 text-xs text-gray-500" onClick={() => setOpen(false)}>
+                {n.label}
+              </Link>
+            ))}
+          </div>
           <div className="pt-2">
             <ConnectButton />
           </div>
