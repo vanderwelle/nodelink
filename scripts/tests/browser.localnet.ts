@@ -46,9 +46,13 @@ async function connectMnemonic(): Promise<void> {
 }
 
 try {
-  step("landing page renders + live stats");
+  step("hub renders: 4 square sections + community bar, live round");
   await page.goto(BASE);
-  await page.getByText("Claim your perks hot.").waitFor();
+  await page.getByText("all in one place.").waitFor();
+  for (const name of ["Node health & alerts", "Rewards & earnings", "Perks & launchpad", "Node setup & management", "Community & leaderboard"]) {
+    await page.getByRole("link", { name }).waitFor();
+  }
+  await page.getByText(/LOCALNET round/).waitFor({ timeout: 20_000 });
   await page.waitForTimeout(2_000);
   await page.screenshot({ path: resolve(OUT, "landing.png"), fullPage: true });
 
