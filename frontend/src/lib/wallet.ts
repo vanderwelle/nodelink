@@ -3,6 +3,7 @@
 import { NetworkConfigBuilder, NetworkId, WalletId, WalletManager } from "@txnlab/use-wallet-react";
 import type algosdk from "algosdk";
 import { ENDPOINTS, NETWORK } from "./config";
+import { assertTxnsAllowed } from "./guard";
 
 const networks = new NetworkConfigBuilder()
   .testnet({ algod: { baseServer: "https://testnet-api.4160.nodely.dev", token: "" } })
@@ -35,7 +36,11 @@ export type TransactionSigner = (txnGroup: algosdk.Transaction[], indexesToSign:
 export function signerFor(address: string): TransactionSigner {
   for (const wallet of walletManager.wallets) {
     if (wallet.isConnected && wallet.accounts.some((a) => a.address === address)) {
-      return (group, indexes) => wallet.transactionSigner(group, indexes);
+      return (group, indexes) => {
+        // Hard guard: refuse before the wallet ever sees a non-contract-network transaction.
+        assertTxnsAllowed(group);
+        return wallet.transactionSigner(group, indexes);
+      };
     }
   }
   throw new Error(`No connected wallet holds ${address}`);

@@ -5,6 +5,7 @@ import { ArrowRight, Newspaper, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LiveTag, SectionHeader } from "@/components/hub/HubTabs";
+import { NetPill } from "@/components/hub/NetPill";
 import { getSection } from "@/components/hub/sections";
 import { NetworkStats } from "@/components/NetworkStats";
 import { ProfileToggle } from "@/components/ProfileToggle";
@@ -30,7 +31,7 @@ export default function CommunityPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Ecosystem news, the opt-in leaderboard and network stats." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub="Ecosystem news, the opt-in leaderboard and network stats." icon={S.icon} tone={S.tone} right={<NetPill kind="contract" />} />
 
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">

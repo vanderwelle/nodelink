@@ -5,13 +5,40 @@ import { ArrowRight, ChevronRight, Link2, Newspaper, Trophy } from "lucide-react
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import type { StatsResponse } from "@/app/api/stats/route";
+import { NetPill } from "@/components/hub/NetPill";
 import { SECTIONS, type HubSection } from "@/components/hub/sections";
 import { NEWS } from "@/content/news";
 import { PERKS } from "@/content/perks";
 import { effectiveStatus } from "@/content/schema";
 import { roundsToDuration } from "@/lib/format";
 import { useLeaderboard } from "@/lib/leaderboard";
+import { TELEMETRY } from "@/lib/config";
 import { evaluateHealth, SEVERITY_STYLE, useNode, worstSeverity, type NodeContext } from "@/lib/node";
+import { fetchNetworkPulse } from "@/lib/telemetry";
+
+/** Telemetry-network round for the hero line (MainNet in production). */
+function useTelemetryRound(): bigint | null {
+  const [round, setRound] = useState<bigint | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = (): void => {
+      if (document.visibilityState !== "visible") return;
+      fetchNetworkPulse()
+        .then((p) => alive && setRound(p.round))
+        .catch(() => undefined);
+    };
+    load();
+    const id = setInterval(load, 15_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+  return round;
+}
+
+/** Which network each tile's live line comes from. */
+const TILE_NET: Record<HubSection["id"], "data" | "contract" | null> = { health: "data", rewards: "data", setup: "data", perks: "contract", community: null };
 
 function useStats(): StatsResponse | null {
   const [stats, setStats] = useState<StatsResponse | null>(null);
@@ -81,7 +108,10 @@ function SquareTile({ section, node }: { section: HubSection; node: NodeContext 
         <span className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5 sm:h-12 sm:w-12 ${tone}`}>
           <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </span>
-        <span className="text-[10px] font-semibold tracking-widest text-gray-600">{letter}</span>
+        <span className="flex flex-col items-end gap-1">
+          <span className="text-[10px] font-semibold tracking-widest text-gray-600">{letter}</span>
+          {TILE_NET[section.id] && <NetPill kind={TILE_NET[section.id] ?? "data"} compact />}
+        </span>
       </div>
       <div className="min-w-0">
         <div className="text-[15px] font-semibold leading-tight text-white sm:text-lg">
@@ -120,6 +150,7 @@ function CommunityBar({ section, stats }: { section: HubSection; stats: StatsRes
             <Trophy className="h-3 w-3 text-amber-400" /> {entries ? `${entries.length} public node runners` : "leaderboard"}
           </span>
           {stats?.totalClaims && <span>{stats.totalClaims} badges issued</span>}
+          <NetPill kind="contract" compact />
         </div>
       </div>
       <ChevronRight className="h-4 w-4 shrink-0 text-gray-600 transition group-hover:translate-x-0.5 group-hover:text-gray-300" />
@@ -130,6 +161,7 @@ function CommunityBar({ section, stats }: { section: HubSection; stats: StatsRes
 export default function HubPage() {
   const node = useNode(30_000);
   const stats = useStats();
+  const telemetryRound = useTelemetryRound();
   const squares = SECTIONS.filter((s) => s.id !== "community");
   const community = SECTIONS.find((s) => s.id === "community");
   const online = stats?.onlineStakeMicroAlgos ? microAlgosToAlgo(BigInt(stats.onlineStakeMicroAlgos), 0) : null;
@@ -144,9 +176,10 @@ export default function HubPage() {
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            {stats ? `${stats.network.toUpperCase()} round ${Number(stats.lastRound).toLocaleString()}` : "connecting…"}
+            {telemetryRound !== null ? `${TELEMETRY.label} round ${Number(telemetryRound).toLocaleString()}` : "connecting…"}
           </span>
-          {online && <span>{online} ALGO online</span>}
+          <NetPill kind="data" />
+          {TELEMETRY.network !== "mainnet" && online && <span>{online} ALGO online</span>}
         </div>
       </section>
 
@@ -160,6 +193,7 @@ export default function HubPage() {
       <section className="flex flex-col gap-2 rounded-2xl border border-white/5 p-4 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
         <span className="flex items-center gap-2">
           <Link2 className="h-3.5 w-3.5 shrink-0" /> Keep your node wallet away from dApps with a private, zero-knowledge hot-wallet badge.
+          <NetPill kind="contract" compact />
         </span>
         <Link href="/link" className="inline-flex shrink-0 items-center gap-1 text-gray-300 hover:text-white">
           Private link <ArrowRight className="h-3 w-3" />

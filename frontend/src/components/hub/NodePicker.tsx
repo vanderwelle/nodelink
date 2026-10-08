@@ -5,6 +5,8 @@ import { Eye, Link2, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useWalletModal } from "@/components/Providers";
+import { NetPill } from "@/components/hub/NetPill";
+import { TELEMETRY } from "@/lib/config";
 import { shortAddress } from "@/lib/format";
 import { saveWatchAddress, type NodeContext } from "@/lib/node";
 
@@ -28,6 +30,7 @@ export function NodePicker({ node, compact = false }: { node: NodeContext; compa
             <X className="h-3 w-3" /> stop
           </button>
         )}
+        <NetPill kind="data" />
       </div>
     );
   }
@@ -44,10 +47,13 @@ export function NodePicker({ node, compact = false }: { node: NodeContext; compa
 
   return (
     <div className="card space-y-3 p-4">
-      <div className="text-sm font-medium text-white">Which node should we monitor?</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-sm font-medium text-white">Which node should we monitor?</div>
+        <NetPill kind="data" />
+      </div>
       {!compact && (
         <p className="text-xs text-gray-400">
-          Paste your node (participation) account address, or use your connected wallet. Read-only — stored only in this browser.
+          Paste your node (participation) account address, or use your connected wallet. Read-only {TELEMETRY.label} data — the address is stored only in this browser.
         </p>
       )}
       <div className="flex gap-2">

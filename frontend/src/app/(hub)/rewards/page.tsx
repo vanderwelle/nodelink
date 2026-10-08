@@ -5,13 +5,15 @@ import { BarChart3, ExternalLink, Sparkles, Trophy } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ProgramsBrowser } from "@/components/content/ProgramsBrowser";
 import { LiveTag, Placeholder, SectionHeader } from "@/components/hub/HubTabs";
+import { NetPill } from "@/components/hub/NetPill";
 import { NodePicker } from "@/components/hub/NodePicker";
 import { getSection } from "@/components/hub/sections";
 import { Notice, Stat } from "@/components/ui";
-import { explorerAccount, ENDPOINTS } from "@/lib/config";
+import { TELEMETRY, telemetryExplorerAccount, telemetryExplorerBlock } from "@/lib/config";
 import { formatAlgo } from "@/lib/format";
 import { useNode } from "@/lib/node";
-import { fetchDailyProposals, type DayBin } from "@/lib/rewards";
+import { fetchDailyProposals, fetchRecentProposals, ROUNDS_PER_DAY, type DayBin, type Proposal } from "@/lib/rewards";
+import { friendlyTelemetryError } from "@/lib/telemetry";
 
 const S = getSection("rewards");
 const WINDOW_DAYS = 30;
@@ -20,6 +22,7 @@ export default function RewardsPage() {
   const node = useNode(60_000);
   const t = node.telemetry;
   const [days, setDays] = useState<DayBin[] | null>(null);
+  const [recent, setRecent] = useState<Proposal[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const round = t?.round ?? null;
   const addr = node.nodeAddress;
@@ -29,8 +32,13 @@ export default function RewardsPage() {
     let alive = true;
     setErr(null);
     fetchDailyProposals(addr, round, WINDOW_DAYS)
-      .then((d) => alive && setDays(d))
-      .catch((e: unknown) => alive && setErr(e instanceof Error ? e.message : String(e)));
+      .then(async (d) => {
+        if (!alive) return;
+        setDays(d);
+        const r = await fetchRecentProposals(addr, round, d);
+        if (alive) setRecent(r);
+      })
+      .catch((e: unknown) => alive && setErr(friendlyTelemetryError(e)));
     return () => {
       alive = false;
     };
@@ -39,24 +47,34 @@ export default function RewardsPage() {
   }, [addr, round === null ? null : round / 100n]);
 
   // reset when switching node
-  useEffect(() => setDays(null), [addr]);
-  const proposals = useMemo(() => (days ? days.flatMap((d) => d.proposals) : null), [days]);
-  const truncated = days?.some((d) => d.truncated) ?? false;
+  useEffect(() => {
+    setDays(null);
+    setRecent(null);
+  }, [addr]);
+  const proposalCount = days ? days.reduce((a, d) => a + d.count, 0) : null;
+  const estimated = days?.some((d) => d.estimated) ?? false;
   const bins = useMemo(() => (days ? days.slice(0, 14).reverse() : null), [days]);
   const total = days?.reduce((a, d) => a + d.payout, 0n) ?? 0n;
-  const realizedApr = days && t && t.balance > 0n ? (Number(total) / Number(t.balance)) * (365 / WINDOW_DAYS) * 100 : null;
+  // windows are day-aligned, so the newest one is partial: annualize over the rounds actually covered
+  const coveredDays = round !== null ? WINDOW_DAYS - 1 + Number(round % ROUNDS_PER_DAY) / Number(ROUNDS_PER_DAY) : WINDOW_DAYS;
+  const realizedApr = days && t && t.balance > 0n ? (Number(total) / Number(t.balance)) * (365 / coveredDays) * 100 : null;
   const maxCount = bins ? Math.max(1, ...bins.map((b) => b.count)) : 1;
 
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Live protocol proposer payouts for your node, plus partner reward programs." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub={`Live ${TELEMETRY.label} proposer payouts for your node, plus partner reward programs.`} icon={S.icon} tone={S.tone} />
       <NodePicker node={node} compact />
-      {err && <Notice tone="warn" title="Could not load proposals">{err}</Notice>}
+      {node.error && <Notice tone="warn" title={t ? "Showing last known balance" : "Could not load node data"}>{node.error}</Notice>}
+      {err && <Notice tone="warn" title={days ? "Showing last loaded proposals" : "Could not load proposals"}>{err}</Notice>}
 
+      <div className="flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
+        <span>Protocol rewards</span>
+        <NetPill kind="data" />
+      </div>
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Node balance" value={t ? formatAlgo(t.balance, 0) : "—"} sub={t ? (t.status === "Online" ? "online stake" : "offline") : "no node selected"} />
-        <Stat label={`Proposals (${WINDOW_DAYS}d)`} value={proposals ? `${proposals.length.toLocaleString()}${truncated ? "+" : ""}` : addr ? "…" : "—"} sub={t?.lastProposed ? `last: round ${t.lastProposed.toString()}` : "none recorded"} />
-        <Stat label={`Payouts (${WINDOW_DAYS}d)`} value={days ? `${microAlgosToAlgo(total, 2)} ALGO` : addr ? "…" : "—"} sub="proposer payouts" />
+        <Stat label={`Proposals (${WINDOW_DAYS}d)`} value={proposalCount !== null ? `${estimated ? "≈" : ""}${proposalCount.toLocaleString()}` : addr ? "…" : "—"} sub={t?.lastProposed ? `last: round ${t.lastProposed.toString()}` : "none recorded"} />
+        <Stat label={`Payouts (${WINDOW_DAYS}d)`} value={days ? `${estimated ? "≈" : ""}${microAlgosToAlgo(total, 2)} ALGO` : addr ? "…" : "—"} sub={estimated ? "estimated from a sample (very active node)" : "proposer payouts"} />
         <Stat
           label="Realized APR"
           value={realizedApr !== null ? `${realizedApr.toFixed(2)}%` : "—"}
@@ -69,7 +87,10 @@ export default function RewardsPage() {
           <div className="flex items-center gap-2 text-sm font-medium text-white">
             <BarChart3 className="h-4 w-4 text-amber-400" /> Proposals per day (14d)
           </div>
-          {bins ? <LiveTag /> : <Placeholder label={addr ? "loading" : "no node"} />}
+          <span className="flex items-center gap-1.5">
+            {bins ? <LiveTag /> : <Placeholder label={addr ? "loading" : "no node"} />}
+            <NetPill kind="data" />
+          </span>
         </div>
         <div className="flex h-32 items-end gap-1" aria-label="proposals per day chart">
           {(bins ?? Array.from({ length: 14 }, (_, i) => ({ daysAgo: 13 - i, count: 0, payout: 0n }))).map((b, i) => (
@@ -83,20 +104,20 @@ export default function RewardsPage() {
         </div>
         <div className="mt-1 flex justify-between text-[10px] text-gray-500">
           <span>14d ago</span>
-          <span>{bins ? "last 24h" : addr ? "loading…" : "Select a node above to see proposals"}</span>
+          <span>{bins ? "today (so far)" : addr ? "loading…" : "Select a node above to see proposals"}</span>
         </div>
       </section>
 
-      {proposals && proposals.length > 0 && (
+      {recent && recent.length > 0 && (
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-sm font-medium text-white">
             <span className="flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-400" /> Recent proposals</span>
-            <LiveTag />
+            <NetPill kind="data" />
           </div>
           <ul className="divide-y divide-white/5 text-sm">
-            {proposals.slice(0, 10).map((p) => (
+            {recent.map((p) => (
               <li key={p.round.toString()} className="flex items-center justify-between gap-2 px-4 py-2">
-                <a className="inline-flex items-center gap-1 font-mono text-gray-300 hover:text-accent" href={`${ENDPOINTS.explorer}/block/${p.round.toString()}`} target="_blank" rel="noreferrer">
+                <a className="inline-flex items-center gap-1 font-mono text-gray-300 hover:text-accent" href={telemetryExplorerBlock(p.round)} target="_blank" rel="noreferrer">
                   #{p.round.toString()} <ExternalLink className="h-3 w-3" />
                 </a>
                 <span className="text-xs text-gray-500">{new Date(p.timestamp * 1000).toLocaleDateString()}</span>
@@ -106,7 +127,7 @@ export default function RewardsPage() {
           </ul>
         </section>
       )}
-      {proposals && proposals.length === 0 && (
+      {proposalCount === 0 && (
         <Notice title={`No proposals in the last ${WINDOW_DAYS} days`}>
           Small stakes propose rarely — expected time between proposals scales with your share of online stake.
         </Notice>
@@ -118,15 +139,16 @@ export default function RewardsPage() {
             <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
               <Sparkles className="h-5 w-5 text-amber-400" /> Reward programs
             </h2>
-            <p className="text-xs text-gray-400">Partner boosts, tier multipliers and campaigns for node runners.</p>
+            <p className="text-xs text-gray-400">Partner boosts, tier multipliers and campaigns for node runners. Tier = your on-chain NodeLink badge.</p>
           </div>
+          <NetPill kind="contract" />
         </div>
         <ProgramsBrowser tier={node.tier} />
       </section>
 
       {t && (
-        <a className="inline-flex items-center gap-1 text-xs text-accent" href={explorerAccount(t.address)} target="_blank" rel="noreferrer">
-          Full account history on Lora <ExternalLink className="h-3 w-3" />
+        <a className="inline-flex items-center gap-1 text-xs text-accent" href={telemetryExplorerAccount(t.address)} target="_blank" rel="noreferrer">
+          Full account history on Lora ({TELEMETRY.label}) <ExternalLink className="h-3 w-3" />
         </a>
       )}
     </div>

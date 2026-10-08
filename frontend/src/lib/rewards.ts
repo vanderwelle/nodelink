@@ -1,65 +1,66 @@
 "use client";
 
-import { ENDPOINTS, SECONDS_PER_ROUND } from "./config";
+import { SECONDS_PER_ROUND } from "./config";
+import { fetchProposedBlocks, type BlockHeaderLite } from "./telemetry";
 
-export interface Proposal {
-  readonly round: bigint;
-  readonly timestamp: number;
-  readonly payout: bigint;
-}
+export type Proposal = BlockHeaderLite;
 
 export interface DayBin {
-  /** 0 = most recent ~24h window */
+  /** 0 = the window containing the current round */
   readonly daysAgo: number;
+  /** exact unless `estimated` */
   readonly count: number;
   readonly payout: bigint;
-  /** the indexer page limit was hit, so count is a lower bound */
-  readonly truncated: boolean;
+  /**
+   * Very large nodes propose hundreds of blocks a day. To keep phones fast and stay well inside
+   * Nodely's free tier we fetch at most SAMPLE_LIMIT headers per day and extrapolate over the
+   * rest of the window (indexer returns blocks in ascending round order).
+   */
+  readonly estimated: boolean;
+  /** proposals actually fetched for this window, newest first */
   readonly proposals: readonly Proposal[];
 }
 
-interface BlockHeaderJson {
-  round: number;
-  timestamp: number;
-  "proposer-payout"?: number;
-}
-
 export const ROUNDS_PER_DAY = BigInt(Math.round(86_400 / SECONDS_PER_ROUND));
-const PAGE = 1000;
-
-async function fetchWindow(address: string, minRound: bigint, maxRound: bigint): Promise<{ proposals: Proposal[]; truncated: boolean }> {
-  const url = new URL(`${ENDPOINTS.indexer}/v2/block-headers`);
-  url.searchParams.set("proposers", address);
-  url.searchParams.set("min-round", minRound.toString());
-  url.searchParams.set("max-round", maxRound.toString());
-  url.searchParams.set("limit", String(PAGE));
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`indexer ${res.status}: ${(await res.text()).slice(0, 160)}`);
-  const json = (await res.json()) as { blocks?: BlockHeaderJson[] };
-  const blocks = json.blocks ?? [];
-  return {
-    proposals: blocks.map((b) => ({ round: BigInt(b.round), timestamp: b.timestamp, payout: BigInt(b["proposer-payout"] ?? 0) })),
-    truncated: blocks.length >= PAGE,
-  };
-}
+const SAMPLE_LIMIT = 100;
+/** Windows that closed this many rounds ago are final (covers indexer lag) and cached forever. */
+const FINALITY = 1_000n;
 
 /**
- * Proposals by `address` over the last `days` (~24h round windows ending at `round`), using the
- * Nodely indexer's /v2/block-headers. One bounded query per day keeps each request fast and the
- * daily counts exact. Runs in the browser, so the NodeLink server never sees the address.
+ * Proposals by `address` in ~24h round windows on the TELEMETRY network. Windows are aligned to
+ * multiples of ROUNDS_PER_DAY so past windows never change and are served from cache on
+ * refresh — a reload costs one indexer request instead of `days`.
  */
 export async function fetchDailyProposals(address: string, round: bigint, days: number): Promise<DayBin[]> {
-  const windows = Array.from({ length: days }, (_, d) => ({ d, max: round - BigInt(d) * ROUNDS_PER_DAY, min: round - BigInt(d + 1) * ROUNDS_PER_DAY + 1n }));
-  const out: DayBin[] = [];
-  for (let i = 0; i < windows.length; i += 6) {
-    const batch = await Promise.all(
-      windows.slice(i, i + 6).map(async (w) => {
-        const r = await fetchWindow(address, w.min > 0n ? w.min : 0n, w.max);
-        const sorted = r.proposals.sort((a, b) => (a.round < b.round ? 1 : -1));
-        return { daysAgo: w.d, count: sorted.length, payout: sorted.reduce((a, p) => a + p.payout, 0n), truncated: r.truncated, proposals: sorted };
-      }),
-    );
-    out.push(...batch);
-  }
-  return out;
+  const currentStart = (round / ROUNDS_PER_DAY) * ROUNDS_PER_DAY;
+  const windows = Array.from({ length: days }, (_, d) => {
+    const min = currentStart - BigInt(d) * ROUNDS_PER_DAY;
+    return { d, min: min > 0n ? min : 0n, max: min + ROUNDS_PER_DAY - 1n };
+  });
+  return Promise.all(
+    windows.map(async (w): Promise<DayBin> => {
+      const r = await fetchProposedBlocks(address, w.min, w.max, round - FINALITY, SAMPLE_LIMIT);
+      const sum = r.blocks.reduce((a, p) => a + p.payout, 0n);
+      const newest = [...r.blocks].sort((a, b) => (a.round < b.round ? 1 : -1));
+      const last = newest[0];
+      if (!r.truncated || !last) return { daysAgo: w.d, count: r.blocks.length, payout: sum, estimated: false, proposals: newest };
+      const end = w.max < round ? w.max : round;
+      const covered = last.round - w.min + 1n;
+      const span = end - w.min + 1n;
+      return {
+        daysAgo: w.d,
+        count: Math.round((r.blocks.length * Number(span)) / Number(covered)),
+        payout: (sum * span) / covered,
+        estimated: true,
+        proposals: newest,
+      };
+    }),
+  );
+}
+
+/** Latest proposals (newest first). Uses a short tail window for very active nodes. */
+export async function fetchRecentProposals(address: string, round: bigint, bins: readonly DayBin[], n = 10): Promise<Proposal[]> {
+  if (!bins.some((b) => b.estimated)) return bins.flatMap((b) => b.proposals).slice(0, n);
+  const tail = await fetchProposedBlocks(address, round > 3_000n ? round - 3_000n : 0n, round, round - FINALITY, SAMPLE_LIMIT);
+  return [...tail.blocks].sort((a, b) => (a.round < b.round ? 1 : -1)).slice(0, n);
 }

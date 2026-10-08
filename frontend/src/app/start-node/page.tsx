@@ -1,10 +1,12 @@
 import { CheckCircle2, ChevronDown, Cpu, Download, Gauge, HardDrive, KeyRound, MemoryStick, Network, RefreshCw, Server, Terminal, Wifi, Wrench } from "lucide-react";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
+import { NetPill } from "@/components/hub/NetPill";
 import { Kbd } from "@/components/Kbd";
 import { SourceLink, SourceList } from "@/components/SourceLinks";
 import { CodeBlock, Notice } from "@/components/ui";
 import { NODEKIT_CMD, NODEKIT_INSTALL, type NodekitSource } from "@/content/nodekit";
+import { CONTRACT_LABEL, TELEMETRY } from "@/lib/config";
 
 const HARDWARE = [
   { icon: Cpu, title: "8 vCPU", body: "A modern mini PC or small server. Mini PCs are popular with home node runners." },
@@ -188,8 +190,22 @@ export default function StartNodePage() {
       </div>
 
       <Notice title="Which network?">
-        NodeKit sets up a <strong>MainNet</strong> node — the network where staking rewards are paid. This NodeLink preview reads <strong>TestNet</strong>{" "}
-        accounts, so a MainNet node won&apos;t show up in the hub until NodeLink launches on MainNet.
+        NodeKit sets up a <strong>MainNet</strong> node — the network where staking rewards are paid.{" "}
+        {TELEMETRY.network === "mainnet" ? (
+          <>
+            The hub&apos;s <strong>Health</strong>, <strong>Rewards</strong> and <strong>Setup</strong> tabs read your node&apos;s public <strong>MainNet</strong> data (read-only), so
+            it shows up as soon as you watch its address. NodeLink badges, perks and the leaderboard are still a <strong>{CONTRACT_LABEL} preview</strong>: every NodeLink
+            transaction is {CONTRACT_LABEL}-only and the app refuses to sign anything on MainNet.
+          </>
+        ) : (
+          <>
+            This NodeLink build reads <strong>{TELEMETRY.label}</strong> accounts, so a MainNet node won&apos;t show up in the hub here.
+          </>
+        )}
+        <span className="mt-2 flex flex-wrap gap-1.5">
+          <NetPill kind="data" />
+          <NetPill kind="contract" />
+        </span>
       </Notice>
 
       <section>

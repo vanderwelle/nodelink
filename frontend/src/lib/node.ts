@@ -1,11 +1,12 @@
 "use client";
 
-import type { HotStatus, TierId } from "@nodelink/shared";
+import { tierForBalance, type HotStatus, type TierId } from "@nodelink/shared";
 import { useWallet } from "@txnlab/use-wallet-react";
 import algosdk from "algosdk";
 import { useCallback, useEffect, useState } from "react";
-import { fetchColdTelemetry, fetchMyStatus, type ColdTelemetry } from "./chain";
+import { currentRound, fetchMyStatus, type ColdTelemetry } from "./chain";
 import { APP_ID } from "./config";
+import { fetchNodeTelemetry, friendlyTelemetryError, type NodeTelemetry } from "./telemetry";
 import { loadSession, type LinkSession } from "./session";
 
 /**
@@ -40,13 +41,26 @@ export interface NodeContext {
   readonly session: LinkSession | null;
   readonly nodeAddress: string | null;
   readonly source: NodeSource | null;
-  readonly telemetry: ColdTelemetry | null;
-  /** NodeLink on-chain status of the connected (hot) wallet */
+  /** read-only node data from the TELEMETRY network (MainNet in production); kept when a refresh fails */
+  readonly telemetry: NodeTelemetry | null;
+  /** ms timestamp of the last successful telemetry read */
+  readonly telemetryAt: number | null;
+  /**
+   * Tier the watched node's TELEMETRY-network balance would qualify for — an ESTIMATE only.
+   * It is not a NodeLink badge; the real badge is `tier` (TestNet contract).
+   */
+  readonly estimatedTier: TierId | null;
+  /** NodeLink on-chain status of the connected (hot) wallet — CONTRACT network (TestNet) */
   readonly hotStatus: HotStatus | null;
-  /** tier only while the hot status is unexpired */
+  /** current round on the CONTRACT network (TestNet) — use for badge expiry, never the telemetry round */
+  readonly contractRound: bigint | null;
+  /** on-chain badge tier, only while the hot status is unexpired (compared against the TestNet round) */
   readonly tier: TierId | null;
   readonly loading: boolean;
+  /** friendly telemetry error (rate limit / unavailable / not found) */
   readonly error: string | null;
+  /** contract (TestNet) read error */
+  readonly contractError: string | null;
   readonly refresh: () => Promise<void>;
 }
 
@@ -56,10 +70,13 @@ export function useNode(pollMs = 30_000): NodeContext {
   const [mounted, setMounted] = useState(false);
   const [watch, setWatch] = useState<string | null>(null);
   const [session, setSession] = useState<LinkSession | null>(null);
-  const [telemetry, setTelemetry] = useState<ColdTelemetry | null>(null);
+  const [telemetry, setTelemetry] = useState<NodeTelemetry | null>(null);
+  const [telemetryAt, setTelemetryAt] = useState<number | null>(null);
   const [hotStatus, setHotStatus] = useState<HotStatus | null>(null);
+  const [contractRound, setContractRound] = useState<bigint | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contractError, setContractError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -87,41 +104,71 @@ export function useNode(pollMs = 30_000): NodeContext {
       return;
     }
     setLoading(true);
-    setError(null);
-    try {
-      const [tel, st] = await Promise.all([
-        nodeAddress ? fetchColdTelemetry(nodeAddress) : Promise.resolve(null),
-        activeAddress ? fetchMyStatus(activeAddress) : Promise.resolve(null),
-      ]);
-      setTelemetry(tel);
-      setHotStatus(st);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
+    // Telemetry (MainNet, read-only) and contract state (TestNet) fail independently.
+    const tel = nodeAddress
+      ? fetchNodeTelemetry(nodeAddress).then(
+          (t) => {
+            setTelemetry(t);
+            setTelemetryAt(Date.now());
+            setError(null);
+          },
+          (err: unknown) => {
+            // keep the last good data on screen; just flag the problem
+            setTelemetry((prev) => (prev && prev.address === nodeAddress ? prev : null));
+            setError(friendlyTelemetryError(err));
+          },
+        )
+      : Promise.resolve().then(() => {
+          setTelemetry(null);
+          setError(null);
+        });
+    const contract = activeAddress
+      ? Promise.all([fetchMyStatus(activeAddress), currentRound()]).then(
+          ([st, r]) => {
+            setHotStatus(st);
+            setContractRound(r);
+            setContractError(null);
+          },
+          (err: unknown) => setContractError(err instanceof Error ? err.message : String(err)),
+        )
+      : Promise.resolve().then(() => setHotStatus(null));
+    await Promise.all([tel, contract]);
+    setLoading(false);
   }, [nodeAddress, activeAddress]);
 
   useEffect(() => {
     if (!mounted) return;
     void refresh();
-    const id = setInterval(() => void refresh(), pollMs);
-    return () => clearInterval(id);
+    // Poll only while the tab is visible (saves Nodely quota); refresh immediately on return.
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, pollMs);
+    const onVis = (): void => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [mounted, refresh, pollMs]);
 
-  const round = telemetry?.round ?? null;
-  const active = hotStatus !== null && (round === null || hotStatus.expiryRound > round);
+  const active = hotStatus !== null && (contractRound === null || hotStatus.expiryRound > contractRound);
   return {
     ready: mounted && isReady,
     activeAddress: activeAddress ?? null,
     session,
     nodeAddress,
     source,
-    telemetry,
+    telemetry: telemetry && telemetry.address === nodeAddress ? telemetry : null,
+    telemetryAt,
+    estimatedTier: telemetry ? (tierForBalance(telemetry.balance)?.id ?? null) : null,
     hotStatus,
+    contractRound,
     tier: hotStatus && active ? hotStatus.tier : null,
     loading,
     error,
+    contractError,
     refresh,
   };
 }

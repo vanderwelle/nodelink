@@ -11,6 +11,7 @@ import {
 } from "@nodelink/shared";
 import { NodeLinkProtocolClient } from "@nodelink/shared/generated";
 import { APP_ID, ENDPOINTS, NETWORK } from "./config";
+import { assertContractNode } from "./guard";
 import { signerFor } from "./wallet";
 
 export function getAlgorand(): AlgorandClient {
@@ -19,6 +20,16 @@ export function getAlgorand(): AlgorandClient {
     algodConfig: { server: ENDPOINTS.algod, token: "" },
     indexerConfig: { server: ENDPOINTS.indexer, token: "" },
   });
+}
+
+/** Contract client after verifying the node's genesis is the contract network (never MainNet). */
+async function guardedAlgorand(): Promise<AlgorandClient> {
+  const algorand = getAlgorand();
+  await assertContractNode(async () => {
+    const p = await algorand.client.algod.getTransactionParams().do();
+    return { genesisID: p.genesisID, genesisHash: p.genesisHash };
+  });
+  return algorand;
 }
 
 export function requireAppId(): bigint {
@@ -33,7 +44,7 @@ function clientFor(algorand: AlgorandClient, sender: string): NodeLinkProtocolCl
 
 /** Step 1 (cold wallet): deposit the opaque commitment leaf. Returns the leaf index. */
 export async function sendDeposit(cold: string, commitment: bigint, tier: TierId): Promise<{ leafIndex: number; txId: string }> {
-  const algorand = getAlgorand();
+  const algorand = await guardedAlgorand();
   const client = clientFor(algorand, cold);
   const res = await client.send.depositCommitment({
     args: {
@@ -52,7 +63,7 @@ export async function sendClaim(
   publicInputs: Uint8Array,
   hasExistingStatus: boolean,
 ): Promise<{ tier: number; expiryRound: bigint; txId: string }> {
-  const algorand = getAlgorand();
+  const algorand = await guardedAlgorand();
   const client = clientFor(algorand, hot);
   const mbr = NULLIFIER_BOX_MBR + (hasExistingStatus ? 0n : HOT_STATUS_BOX_MBR);
   const res = await client.send.claimStatus({
@@ -70,7 +81,7 @@ export async function sendClaim(
 
 /** Opt-in public profile: cold wallet signs the MBR payment, hot wallet signs the app call. */
 export async function sendRevealProfile(hot: string, cold: string): Promise<string> {
-  const algorand = getAlgorand();
+  const algorand = await guardedAlgorand();
   algorand.setSigner(cold, signerFor(cold));
   const client = clientFor(algorand, hot);
   const res = await client.send.revealPublicProfile({
@@ -83,7 +94,7 @@ export async function sendRevealProfile(hot: string, cold: string): Promise<stri
 }
 
 export async function sendHideProfile(hot: string): Promise<string> {
-  const algorand = getAlgorand();
+  const algorand = await guardedAlgorand();
   const client = clientFor(algorand, hot);
   const res = await client.send.hidePublicProfile({ args: [], coverAppCallInnerTransactionFees: true, maxFee: microAlgo(5_000) });
   return res.txIds.at(-1) ?? "";

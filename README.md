@@ -100,7 +100,7 @@ npm run dev                                     # http://localhost:3000
 npm run build                                   # production build (strict TS, zero `any`)
 ```
 
-For a LocalNet UI session: `NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id> npm run dev`
+For a LocalNet UI session: `NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_TELEMETRY_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id> npm run dev`
 (adds the KMD and test-only Mnemonic wallet providers). The headless browser test drives the whole
 wizard: `BASE_URL=http://localhost:3100 CHROME_PATH=/usr/bin/google-chrome npm run test:browser -w scripts`.
 
@@ -110,9 +110,28 @@ Production: **https://nodelink-ten.vercel.app** (TestNet app `773918931`). Verce
 (team `nodelink`) with Root Directory `frontend` and "include files outside the root directory", so
 `@nodelink/shared` resolves from the workspace. `frontend/vercel.json` installs from the monorepo root
 (`cd .. && npm ci`); `.vercelignore` keeps `.env*`, `node_modules` and circuit build output out of uploads.
-Only two public build-time variables are set on Vercel — `NEXT_PUBLIC_NETWORK=testnet`,
-`NEXT_PUBLIC_APP_ID=773918931`. No mnemonics or tokens live on Vercel; the API routes only read public
-Nodely algod/indexer endpoints.
+Only three public build-time variables are set on Vercel — `NEXT_PUBLIC_NETWORK=testnet`,
+`NEXT_PUBLIC_APP_ID=773918931`, `NEXT_PUBLIC_TELEMETRY_NETWORK=mainnet`. No mnemonics or tokens live on
+Vercel; the API routes only read public Nodely algod/indexer endpoints.
+
+### Two networks: MainNet telemetry, TestNet contract
+
+| Reads / writes | Network | Where |
+|---|---|---|
+| Node health (status, incentive eligibility, part-key expiry, last proposal/heartbeat, alerts, network round) | `NEXT_PUBLIC_TELEMETRY_NETWORK` (**MainNet** in prod) | `lib/telemetry.ts` → Health, hub tiles |
+| Rewards live stats (balance, proposals, payouts, APR, chart, recent blocks) | telemetry (MainNet) | `lib/rewards.ts` → Rewards |
+| Setup prefilled commands (round, catchpoint channel, Lora keyreg link) | telemetry (MainNet) | Setup, Start-node note |
+| "Eligible tier based on MainNet balance" | telemetry (MainNet) — **estimate only** | Health |
+| Deposit, claim, reveal/hide profile, badge/tier, leaderboard, merkle-path, app stats, perk gating | `NEXT_PUBLIC_NETWORK` (**TestNet**; MainNet is not even parseable) | `lib/chain.ts`, `lib/protocol.ts`, `/api/*`, `/link` |
+
+`lib/telemetry.ts` only issues `GET`s (no algosdk client, no signer). Hard guard (`lib/guard.ts`): every
+transaction group is checked before a wallet sees it (`signerFor`) and the contract algod's genesis is
+checked before every send — MainNet genesis (`mainnet-v1.0` / `wGHE2P…kit8=`), or anything other than
+TestNet when the contract network is TestNet, throws. `npm run test:guard -w scripts` proves it offline.
+Rate limits (Nodely free tier: 60 req/s, 10 concurrent per IP; 429/403): TTL cache + in-flight de-dupe,
+max 4 concurrent, exponential backoff + jitter honouring `Retry-After`, failover to Nodely backup domains
+on 5xx, stale data kept with "updated Xs ago", polling paused in background tabs, completed day windows of
+proposals cached in localStorage, and very active nodes sampled (≤100 headers/day, shown as "≈").
 
 ```bash
 vercel deploy --prod                               # from the repo root (linked via .vercel/, gitignored)

@@ -4,12 +4,13 @@ import { ArrowRight, ChevronDown, ExternalLink, Gauge, KeyRound, Link2, Power, R
 import Link from "next/link";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { SectionHeader } from "@/components/hub/HubTabs";
+import { NetPill } from "@/components/hub/NetPill";
 import { getSection } from "@/components/hub/sections";
 import { Kbd } from "@/components/Kbd";
 import { SourceLink } from "@/components/SourceLinks";
 import { CodeBlock, Notice } from "@/components/ui";
 import { NODEKIT_CMD, NODEKIT_INSTALL } from "@/content/nodekit";
-import { ENDPOINTS } from "@/lib/config";
+import { TELEMETRY } from "@/lib/config";
 import { roundsToDuration } from "@/lib/format";
 import { useNode } from "@/lib/node";
 
@@ -61,7 +62,9 @@ export default function SetupPage() {
   const first = t ? t.round.toString() : "$(goal node status | awk '/Last committed block/ {print $4}')";
   const last = t ? (t.round + KEY_ROUNDS).toString() : "$((FIRST + 3000000))";
   const keyLeft = t?.voteLastValid != null ? t.voteLastValid - t.round : null;
-  const wizard = `${ENDPOINTS.explorer}/transaction-wizard`;
+  // External link: keyreg is built and signed in Lora by the user's own wallet — NodeLink builds no transaction here.
+  const wizard = `${TELEMETRY.explorer}/transaction-wizard`;
+  const channel = TELEMETRY.catchpointChannel ?? "testnet";
 
   return (
     <div className="space-y-6">
@@ -77,6 +80,17 @@ export default function SetupPage() {
         </span>
         <ArrowRight className="h-4 w-4 shrink-0 text-gray-400" />
       </Link>
+
+      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+        <NetPill kind="data" />
+        {t ? (
+          <span>
+            Commands below are prefilled for your node from {TELEMETRY.label} round <span className="font-mono text-gray-200">#{t.round.toLocaleString()}</span>.
+          </span>
+        ) : (
+          <span>Watch your node on the Health tab to prefill commands with your address and the current {TELEMETRY.label} round.</span>
+        )}
+      </div>
 
       <div className="space-y-3">
         <Shortcut
@@ -124,7 +138,7 @@ goal clerk rawsend -f online.txn.signed`}
             />
             <CodeBlock title="offline" code={`goal account changeonlinestatus -a "${addr}" -o=0 -t offline.txn`} />
             <a className="btn-ghost w-full text-xs" href={wizard} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-3.5 w-3.5" /> Build &amp; sign keyreg in Lora
+              <ExternalLink className="h-3.5 w-3.5" /> Build &amp; sign keyreg in Lora ({TELEMETRY.label})
             </a>
           </Manual>
         </Shortcut>
@@ -136,9 +150,9 @@ goal clerk rawsend -f online.txn.signed`}
           <SourceLink source="catchup" />
           <Manual>
             <CodeBlock
-              title="on your node (TestNet catchpoint)"
+              title={`on your node (${channel === "mainnet" ? "MainNet" : "TestNet"} catchpoint)`}
               code={`export ALGORAND_DATA=/var/lib/algorand
-CATCHPOINT=$(curl -s https://algorand-catchpoints.s3.us-east-2.amazonaws.com/channel/testnet/latest.catchpoint)
+CATCHPOINT=$(curl -s https://algorand-catchpoints.s3.us-east-2.amazonaws.com/channel/${channel}/latest.catchpoint)
 sudo -u algorand goal node catchup "$CATCHPOINT"
 watch -n 5 goal node status   # wait for "Sync Time: 0.0s"`}
             />
@@ -162,6 +176,9 @@ watch -n 5 goal node status   # wait for "Sync Time: 0.0s"`}
         </Shortcut>
       </div>
 
+      <div className="flex justify-end">
+        <NetPill kind="contract" />
+      </div>
       <Notice title="Optional: private hot-wallet badge">
         Keep your node wallet offline from dApps by linking a separate daily wallet with a zero-knowledge proof.{" "}
         <Link href="/link" className="inline-flex items-center gap-1 underline">

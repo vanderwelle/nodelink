@@ -4,7 +4,7 @@
  *   /link step 2 (hot: import backup, Merkle path, IN-BROWSER snarkjs proof, claim) -> hub tabs (/health, /perks)
  *
  * Prereqs: `algokit localnet start`, a LocalNet deployment (NODELINK_NETWORK=localnet npm run deploy),
- * and the frontend dev server started with NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id>.
+ * and the frontend dev server started with NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_TELEMETRY_NETWORK=localnet NEXT_PUBLIC_APP_ID=<id>.
  *   BASE_URL=http://localhost:3100 CHROME_PATH=/usr/bin/google-chrome npx tsx tests/browser.localnet.ts
  */
 import { execFileSync } from "node:child_process";
@@ -52,7 +52,7 @@ try {
   for (const name of ["Node health & alerts", "Rewards & earnings", "Perks & launchpad", "Node setup & management", "Community & leaderboard"]) {
     await page.getByRole("link", { name }).waitFor();
   }
-  await page.getByText(/LOCALNET round/).waitFor({ timeout: 20_000 });
+  await page.getByText(/LocalNet round/i).waitFor({ timeout: 20_000 });
   await page.waitForTimeout(2_000);
   await page.screenshot({ path: resolve(OUT, "landing.png"), fullPage: true });
 

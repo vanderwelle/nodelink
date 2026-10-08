@@ -3,29 +3,33 @@
 import { Clock, ExternalLink, Gauge, HeartPulse, KeyRound, RefreshCw, Server, ShieldCheck, Wifi } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EstimatedTierCard } from "@/components/hub/EstimatedTier";
 import { LiveTag, Placeholder, SectionHeader } from "@/components/hub/HubTabs";
+import { NetPill, UpdatedAgo } from "@/components/hub/NetPill";
 import { NodePicker } from "@/components/hub/NodePicker";
 import { getSection } from "@/components/hub/sections";
 import { RankBadge } from "@/components/RankBadge";
 import { Notice, Stat } from "@/components/ui";
-import { algod } from "@/lib/chain";
-import { explorerAccount } from "@/lib/config";
+import { TELEMETRY, telemetryExplorerAccount } from "@/lib/config";
 import { formatAlgo, roundsAgo, roundsToDuration } from "@/lib/format";
 import { evaluateHealth, SEVERITY_STYLE, useNode } from "@/lib/node";
+import { fetchNetworkPulse } from "@/lib/telemetry";
 
 const S = getSection("health");
 
-function useNetworkPulse(): { round: bigint; secondsSince: number } | null {
+/** Telemetry-network round + last block age (MainNet in production). */
+function useNetworkPulse(): { round: bigint; secondsSince: number; now: number } | null {
   const [pulse, setPulse] = useState<{ round: bigint; ts: number } | null>(null);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     let alive = true;
     const load = async (): Promise<void> => {
+      if (document.visibilityState !== "visible") return; // save quota in background tabs
       try {
-        const s = await algod.status().do();
-        if (alive) setPulse({ round: s.lastRound, ts: Date.now() - Number(s.timeSinceLastRound / 1_000_000n) });
+        const s = await fetchNetworkPulse();
+        if (alive) setPulse({ round: s.round, ts: s.lastBlockAt });
       } catch {
-        /* network pulse is best-effort */
+        /* network pulse is best-effort; keep the last value */
       }
     };
     void load();
@@ -37,7 +41,7 @@ function useNetworkPulse(): { round: bigint; secondsSince: number } | null {
       clearInterval(b);
     };
   }, []);
-  return pulse ? { round: pulse.round, secondsSince: Math.max(0, (now - pulse.ts) / 1000) } : null;
+  return pulse ? { round: pulse.round, secondsSince: Math.max(0, (now - pulse.ts) / 1000), now } : null;
 }
 
 export default function HealthPage() {
@@ -51,7 +55,7 @@ export default function HealthPage() {
     <div className="space-y-6">
       <SectionHeader
         title={S.title}
-        sub="Live consensus status of your node account from public chain data."
+        sub={`Live consensus status of your node account from public ${TELEMETRY.label} chain data.`}
         icon={S.icon}
         tone={S.tone}
         right={
@@ -64,13 +68,23 @@ export default function HealthPage() {
       />
 
       <NodePicker node={node} />
-      {node.error && <Notice tone="warn" title="Could not load node data">{node.error}</Notice>}
+      {node.error && (
+        <Notice tone="warn" title={t ? "Showing last known data" : "Could not load node data"}>
+          {node.error}
+        </Notice>
+      )}
+      {node.source === "session" && TELEMETRY.network === "mainnet" && (
+        <p className="text-[11px] text-gray-500">Your private link was proven on TestNet; health below reads the same address on MainNet.</p>
+      )}
 
       {t && (
         <>
           <section className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">
-              Alerts <LiveTag />
+            <div className="flex flex-wrap items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">
+              Alerts <LiveTag /> <NetPill kind="data" />
+              <span className="ml-auto normal-case tracking-normal">
+                <UpdatedAgo at={node.telemetryAt} now={pulse?.now ?? Date.now()} />
+              </span>
             </div>
             <div className="space-y-2">
               {alerts.map((a) => (
@@ -102,13 +116,15 @@ export default function HealthPage() {
 
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
             <span>Balance {formatAlgo(t.balance)}</span>
-            <a className="inline-flex items-center gap-1 text-accent" href={explorerAccount(t.address)} target="_blank" rel="noreferrer">
-              account on Lora <ExternalLink className="h-3 w-3" />
+            <a className="inline-flex items-center gap-1 text-accent" href={telemetryExplorerAccount(t.address)} target="_blank" rel="noreferrer">
+              account on Lora ({TELEMETRY.label}) <ExternalLink className="h-3 w-3" />
             </a>
             <Link href="/setup" className="inline-flex items-center gap-1 text-accent">
               <KeyRound className="h-3 w-3" /> renew key / keyreg
             </Link>
           </div>
+
+          <EstimatedTierCard tier={node.estimatedTier} balance={t.balance} />
         </>
       )}
 
@@ -116,10 +132,10 @@ export default function HealthPage() {
         <div className="card p-4">
           <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
             <span className="flex items-center gap-1"><Wifi className="h-3.5 w-3.5" /> Network sync</span>
-            <LiveTag />
+            <NetPill kind="data" />
           </div>
           <div className="text-xl font-semibold text-white">{pulse ? `#${pulse.round.toLocaleString()}` : "…"}</div>
-          <div className="mt-1 text-xs text-gray-400">{pulse ? `last block ${pulse.secondsSince.toFixed(1)} s ago (Nodely)` : "connecting to Nodely"}</div>
+          <div className="mt-1 text-xs text-gray-400">{pulse ? `${TELEMETRY.label} · last block ${pulse.secondsSince.toFixed(1)} s ago (Nodely)` : `connecting to Nodely (${TELEMETRY.label})`}</div>
         </div>
         <div className="card p-4">
           <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
@@ -142,15 +158,15 @@ export default function HealthPage() {
       {node.activeAddress && (
         <section className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-gray-500">
-              <ShieldCheck className="h-3.5 w-3.5" /> NodeLink badge (connected wallet)
+            <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-gray-500">
+              <ShieldCheck className="h-3.5 w-3.5" /> NodeLink badge (connected wallet) <NetPill kind="contract" />
             </div>
             {node.tier ? (
               <div className="mt-2 flex flex-wrap items-center gap-4">
                 <RankBadge tier={node.tier} />
-                {node.hotStatus && t && (
+                {node.hotStatus && node.contractRound !== null && (
                   <span className="flex items-center gap-1 text-xs text-gray-400">
-                    <Clock className="h-3 w-3" /> expires in {roundsToDuration(node.hotStatus.expiryRound - t.round)}
+                    <Clock className="h-3 w-3" /> expires in {roundsToDuration(node.hotStatus.expiryRound - node.contractRound)}
                   </span>
                 )}
               </div>

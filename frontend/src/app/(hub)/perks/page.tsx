@@ -5,6 +5,7 @@ import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { PerksBrowser } from "@/components/content/PerksBrowser";
 import { SectionHeader } from "@/components/hub/HubTabs";
+import { NetPill } from "@/components/hub/NetPill";
 import { getSection } from "@/components/hub/sections";
 import { RankBadge } from "@/components/RankBadge";
 import { useNode } from "@/lib/node";
@@ -15,7 +16,7 @@ export default function PerksPage() {
   const node = useNode(60_000);
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Partner perks that unlock by NodeLink tier." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub="Partner perks that unlock by NodeLink tier." icon={S.icon} tone={S.tone} right={<NetPill kind="contract" />} />
       {node.tier ? (
         <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
           <RankBadge tier={node.tier} />

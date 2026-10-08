@@ -27,6 +27,7 @@ import { Notice, ProgressBar } from "@/components/ui";
 import { fetchColdTelemetry, fetchMyStatus, type ColdTelemetry } from "@/lib/chain";
 import { APP_ID, NETWORK, explorerTx } from "@/lib/config";
 import { errorMessage, formatAlgo, shortAddress } from "@/lib/format";
+import { NetPill } from "@/components/hub/NetPill";
 import { sendClaim, sendDeposit } from "@/lib/protocol";
 import { saveSession } from "@/lib/session";
 import { proveInBrowser, type ProveProgress } from "@/lib/zk";
@@ -38,7 +39,9 @@ export default function LinkWizardPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Private Link Wizard</h1>
+        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold text-white">
+          Private Link Wizard <NetPill kind="contract" />
+        </h1>
         <p className="text-sm text-gray-400">
           Prove your hot wallet belongs to a node-runner tier — without linking it to your cold wallet on-chain.
         </p>
