@@ -39,8 +39,8 @@ const record = (step: string, ok: boolean, detail: string): void => {
 
 try {
   console.log(`App ${appId} | cold ${cold.addr.toString()} | hot ${hot.addr.toString()}`);
-  if ((await balanceOf(algorand, hot.addr.toString())) < 400_000n) {
-    await algorand.send.payment({ sender: cold.addr, receiver: hot.addr, amount: algo(0.6) });
+  if ((await balanceOf(algorand, hot.addr.toString())) < 300_000n) {
+    await algorand.send.payment({ sender: cold.addr, receiver: hot.addr, amount: algo(0.35) });
   }
 
   // 1. Cold wallet deposits a Scout (tier 1) commitment

@@ -67,6 +67,18 @@ npm run e2e:testnet          # deposit -> indexer -> post_root -> proof -> claim
 npm run root-updater -- --watch   # keep roots fresh for real users
 ```
 
+**Current TestNet deployment** (see `deployments/testnet.json`): app ID
+[`773918931`](https://lora.algokit.io/testnet/application/773918931), app address
+`AYGNTZW2DUO2DJFJDOQAGIUBJNAHKJBIZDN4CFJ5RJFCWNIW74GTRTZXP4`, root updater = deployer.
+`npm run e2e:testnet` passed end-to-end on 2026-10-08 (deposit
+[`2KRLI2VZ…`](https://lora.algokit.io/testnet/transaction/2KRLI2VZ6DDQX3A4URDFC2BSBBPCI3JX2UTR4YFT4AK67EVRUDWQ),
+post_root [`DDXWG44L…`](https://lora.algokit.io/testnet/transaction/DDXWG44LCXYXFB27JKGDSA6RDRV4BBO4CE4MUK2VBEFJTE3QR73Q),
+claim_status with on-chain Groth16 verify
+[`2SSQQO2A…`](https://lora.algokit.io/testnet/transaction/2SSQQO2AKFIDLQ4YKXN7UVXFQ2T37KHXCRCIFMU6DHALYZVZ34CQ)).
+
+The root updater only sends a `post_root` (0.001 ALGO) when the indexed leaf set of a tier changed, so
+running `--watch` is cheap. Without it, new deposits are not provable until a root is posted.
+
 ### Frontend
 
 ```bash

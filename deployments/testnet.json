@@ -1,0 +1,11 @@
+{
+  "network": "testnet",
+  "appId": "773918931",
+  "appAddress": "AYGNTZW2DUO2DJFJDOQAGIUBJNAHKJBIZDN4CFJ5RJFCWNIW74GTRTZXP4",
+  "deployer": "DALZQFOV5IOVDHOQXF5TXXY6X3XGTO3GQMLYCRQIC2H7NIEKLLEMRMRGGE",
+  "rootUpdater": "DALZQFOV5IOVDHOQXF5TXXY6X3XGTO3GQMLYCRQIC2H7NIEKLLEMRMRGGE",
+  "statusTtlRounds": "925000",
+  "testnetSkipOnlineCheck": true,
+  "deployedAt": "2026-10-08T19:12:45.081Z",
+  "explorer": "https://lora.algokit.io/testnet/application/773918931"
+}
