@@ -5,7 +5,7 @@
  *   NODELINK_NETWORK=localnet npx tsx --test tests/localnet.test.ts
  */
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
 import { microAlgo } from "@algorandfoundation/algokit-utils";
 import algosdk from "algosdk";
 import {
@@ -24,7 +24,7 @@ import {
 } from "@nodelink/shared";
 import type { NodeLinkProtocolClient } from "@nodelink/shared/generated";
 import { makeAlgorand } from "../lib/env";
-import { proveMembership } from "../lib/prover";
+import { proveMembership, terminateSnarkjsWorkers } from "../lib/prover";
 import { claimStatus, deployProtocol, depositCommitment, type Signer } from "../lib/protocol";
 import type { AlgorandClient } from "@algorandfoundation/algokit-utils";
 
@@ -68,6 +68,10 @@ describe("NodeLinkProtocol on LocalNet", { timeout: 600_000 }, () => {
     attacker = await fund(2);
     app = await deployProtocol(algorand, admin, { statusTtlRounds: TTL, testnetSkipOnlineCheck: false });
     appBypass = await deployProtocol(algorand, admin, { statusTtlRounds: TTL, testnetSkipOnlineCheck: true });
+  });
+
+  after(async () => {
+    await terminateSnarkjsWorkers();
   });
 
   it("rejects deposits from accounts that are not online participants", async () => {
@@ -175,7 +179,15 @@ describe("NodeLinkProtocol on LocalNet", { timeout: 600_000 }, () => {
 
   it("rejects any attempt to rekey through the protocol", async () => {
     await expectFailure(
-      app.send.getStatus({ sender: hot.addr, args: { hot: hot.addr.toString() }, rekeyTo: attacker.addr }),
+      app.send.depositCommitment({
+        sender: onlineCold.addr,
+        rekeyTo: attacker.addr,
+        args: {
+          commitment: bigIntToBytes(generateCommitment(1).leaf, 32),
+          declaredTier: 1n,
+          mbrPayment: algorand.createTransaction.payment({ sender: onlineCold.addr, receiver: app.appAddress, amount: microAlgo(23_700) }),
+        },
+      }),
       /rekey not allowed/,
       "rekey",
     );

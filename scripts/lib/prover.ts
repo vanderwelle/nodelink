@@ -34,3 +34,9 @@ export async function proveMembership(params: {
     publicSignals,
   };
 }
+
+/** snarkjs keeps a bn128 worker pool alive on globalThis; terminate it so Node can exit. */
+export async function terminateSnarkjsWorkers(): Promise<void> {
+  const curve = (globalThis as { curve_bn128?: { terminate: () => Promise<void> } }).curve_bn128;
+  if (curve) await curve.terminate();
+}

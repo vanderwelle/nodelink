@@ -9,7 +9,8 @@
     "e2e": "tsx e2e-testnet.ts",
     "gen-vk": "tsx gen-verifier-key.ts",
     "fund": "tsx fund-check.ts",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.2",

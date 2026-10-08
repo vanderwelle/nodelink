@@ -369,6 +369,10 @@ class NodeLinkProtocol(ARC4Contract):
         (5 x 32-byte big-endian BN254 scalars, snarkjs order)."""
         assert self.bootstrapped.value, "not bootstrapped"
         assert_no_authority_change_current()
+        # Groth16 needs ~72k opcode budget -> inner OpUp app calls, paid from the outer
+        # transaction's fee (GroupCredit). Done first so that every check below
+        # (incl. the 32-slot root scan) fails with its own message, not a budget error.
+        ensure_budget(GROTH16_BUDGET, OpUpFeeSource.GroupCredit)
         assert proof.length == PROOF_SIZE, "proof must be 256 bytes"
         assert public_inputs.length == PUBLIC_INPUTS_SIZE, "public inputs must be 160 bytes"
 
@@ -406,9 +410,7 @@ class NodeLinkProtocol(ARC4Contract):
             required_mbr += HOT_STATUS_BOX_MBR
         assert_mbr_payment(mbr_payment, required_mbr)
 
-        # 6) Groth16 verification (needs ~72k opcode budget -> inner OpUp calls,
-        #    paid from the outer transaction's fee via GroupCredit).
-        ensure_budget(GROTH16_BUDGET, OpUpFeeSource.GroupCredit)
+        # 6) Groth16 verification.
         assert verify_groth16(proof, public_inputs), "invalid proof"
 
         # Effects
