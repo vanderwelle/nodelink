@@ -19,19 +19,18 @@ import {
 } from "@nodelink/shared";
 import { NodeLinkProtocolClient } from "@nodelink/shared/generated";
 import { loadOrCreateAccount, balanceOf } from "./lib/accounts";
-import { makeAlgorand, networkFromEnv, requireEnv } from "./lib/env";
+import { accountKey, appIdKey, makeAlgorand, networkFromEnv, requireEnv } from "./lib/env";
 import { proveMembership, terminateSnarkjsWorkers } from "./lib/prover";
 import { claimStatus, depositCommitment, syncRoots } from "./lib/protocol";
 
-const network = networkFromEnv();
-if (network !== "testnet") throw new Error("e2e-testnet.ts targets testnet only");
+const network = networkFromEnv(); // testnet (default) or localnet rehearsal; mainnet is refused
 const algorand = await makeAlgorand(network);
-const appId = BigInt(requireEnv("NODELINK_APP_ID"));
-const { account: cold } = loadOrCreateAccount(algorand, "DEPLOYER_MNEMONIC"); // also root updater
-const { account: hot } = loadOrCreateAccount(algorand, "E2E_HOT_MNEMONIC");
+const appId = BigInt(requireEnv(appIdKey(network)));
+const { account: cold } = loadOrCreateAccount(algorand, accountKey(network, "DEPLOYER_MNEMONIC")); // also root updater
+const { account: hot } = loadOrCreateAccount(algorand, accountKey(network, "E2E_HOT_MNEMONIC"));
 const client = algorand.client.getTypedAppClientById(NodeLinkProtocolClient, { appId, defaultSender: cold.addr });
-const indexer = makeIndexer(NETWORKS.testnet);
-const explorer = NETWORKS.testnet.explorer;
+const indexer = makeIndexer(NETWORKS[network]);
+const explorer = NETWORKS[network].explorer;
 const results: { step: string; ok: boolean; detail: string }[] = [];
 const record = (step: string, ok: boolean, detail: string): void => {
   results.push({ step, ok, detail });
@@ -94,6 +93,6 @@ try {
   await terminateSnarkjsWorkers();
 }
 const failed = results.filter((r) => !r.ok).length;
-console.log(failed === 0 ? "\nE2E TESTNET: ALL STEPS PASSED" : `\nE2E TESTNET: ${failed} STEP(S) FAILED`);
+console.log(failed === 0 ? `\nE2E ${network.toUpperCase()}: ALL STEPS PASSED` : `\nE2E ${network.toUpperCase()}: ${failed} STEP(S) FAILED`);
 process.exit(failed === 0 ? 0 : 1);
 void microAlgo;

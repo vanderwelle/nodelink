@@ -9,12 +9,21 @@ import { isTierId, type TierId } from "./tiers";
 export const LEAF_DEPOSITED_SELECTOR = "b7383d55";
 export const ROOT_POSTED_SELECTOR = "6467a9bc";
 
+function splitUrl(url: string): { server: string; port: string } {
+  const u = new URL(url);
+  return { server: `${u.protocol}//${u.hostname}`, port: u.port };
+}
+
+const LOCALNET_TOKEN = "a".repeat(64);
+
 export function makeAlgod(endpoints: NetworkEndpoints): algosdk.Algodv2 {
-  return new algosdk.Algodv2("", endpoints.algod, "");
+  const { server, port } = splitUrl(endpoints.algod);
+  return new algosdk.Algodv2(port ? LOCALNET_TOKEN : "", server, port);
 }
 
 export function makeIndexer(endpoints: NetworkEndpoints): algosdk.Indexer {
-  return new algosdk.Indexer("", endpoints.indexer, "");
+  const { server, port } = splitUrl(endpoints.indexer);
+  return new algosdk.Indexer(port ? LOCALNET_TOKEN : "", server, port);
 }
 
 const enc = new TextEncoder();

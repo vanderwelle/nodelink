@@ -19,7 +19,8 @@ export const walletManager = new WalletManager({
     WalletId.DEFLY,
     { id: WalletId.LUTE, options: { siteName: "NodeLink" } },
     WalletId.KIBISIS,
-    ...(NETWORK === "localnet" ? [WalletId.KMD] : []),
+    // LocalNet-only test wallets (the Mnemonic provider itself refuses production networks)
+    ...(NETWORK === "localnet" ? [WalletId.KMD, WalletId.MNEMONIC] : []),
   ],
   networks,
   defaultNetwork: NETWORK === "localnet" ? NetworkId.LOCALNET : NetworkId.TESTNET,

@@ -10,7 +10,8 @@
     "gen-vk": "tsx gen-verifier-key.ts",
     "fund": "tsx fund-check.ts",
     "typecheck": "tsc --noEmit -p .",
-    "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts"
+    "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts",
+    "test:browser": "NODELINK_NETWORK=localnet tsx tests/browser.localnet.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.2",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "playwright-core": "^1.64.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

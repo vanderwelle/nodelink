@@ -61,3 +61,13 @@ export function requireEnv(key: string): string {
   if (!v) throw new Error(`Missing ${key} in .env`);
   return v;
 }
+
+/** .env key holding the deployed app id for a network. */
+export function appIdKey(network: NetworkId): string {
+  return network === "testnet" ? "NODELINK_APP_ID" : "NODELINK_APP_ID_LOCALNET";
+}
+
+/** .env key prefix for persisted accounts (LocalNet accounts are kept separate). */
+export function accountKey(network: NetworkId, name: string): string {
+  return network === "testnet" ? name : `LOCALNET_${name}`;
+}

@@ -13,17 +13,17 @@ import { resolve } from "node:path";
 import { algo, microAlgo } from "@algorandfoundation/algokit-utils";
 import { NETWORKS, microAlgosToAlgo } from "@nodelink/shared";
 import { loadOrCreateAccount, balanceOf } from "./lib/accounts";
-import { ENV_PATH, REPO_ROOT, makeAlgorand, networkFromEnv, upsertEnv } from "./lib/env";
+import { ENV_PATH, REPO_ROOT, accountKey, appIdKey, makeAlgorand, networkFromEnv, upsertEnv } from "./lib/env";
 import { deployProtocol } from "./lib/protocol";
 
 const MIN_DEPLOY_BALANCE = 3_000_000n; // 3 ALGO covers deploy + bootstrap + e2e
 // ~30 days of TestNet rounds (~2.8 s/round)
 const STATUS_TTL_ROUNDS = 925_000n;
 
-const network = networkFromEnv();
-if (network !== "testnet") throw new Error("deploy.ts targets testnet only (use the LocalNet tests for localnet)");
+const network = networkFromEnv(); // testnet (default) or localnet rehearsal; mainnet is refused
 const algorand = await makeAlgorand(network);
-const { account: deployer, created } = loadOrCreateAccount(algorand, "DEPLOYER_MNEMONIC");
+const { account: deployer, created } = loadOrCreateAccount(algorand, accountKey(network, "DEPLOYER_MNEMONIC"));
+if (network === "localnet") await algorand.account.ensureFundedFromEnvironment(deployer.addr, algo(10));
 const addr = deployer.addr.toString();
 console.log(`Deployer: ${addr}${created ? " (newly generated; mnemonic saved to .env)" : ""}`);
 
@@ -52,16 +52,18 @@ const client = await deployProtocol(algorand, deployer, {
 });
 const appId = client.appId.toString();
 console.log(`Deployed NodeLinkProtocol app ${appId} (app address ${client.appAddress.toString()})`);
-console.log(`Explorer: ${NETWORKS.testnet.explorer}/application/${appId}`);
+console.log(`Explorer: ${NETWORKS[network].explorer}/application/${appId}`);
 
-upsertEnv(ENV_PATH, { NODELINK_APP_ID: appId, NODELINK_NETWORK: "testnet" });
-upsertEnv(resolve(REPO_ROOT, "frontend/.env.local"), { NEXT_PUBLIC_APP_ID: appId, NEXT_PUBLIC_NETWORK: "testnet" });
+upsertEnv(ENV_PATH, { [appIdKey(network)]: appId });
+if (network === "testnet") {
+  upsertEnv(resolve(REPO_ROOT, "frontend/.env.local"), { NEXT_PUBLIC_APP_ID: appId, NEXT_PUBLIC_NETWORK: "testnet" });
+}
 mkdirSync(resolve(REPO_ROOT, "deployments"), { recursive: true });
 writeFileSync(
-  resolve(REPO_ROOT, "deployments/testnet.json"),
+  resolve(REPO_ROOT, `deployments/${network}.json`),
   JSON.stringify(
     {
-      network: "testnet",
+      network,
       appId,
       appAddress: client.appAddress.toString(),
       deployer: addr,
@@ -69,7 +71,7 @@ writeFileSync(
       statusTtlRounds: STATUS_TTL_ROUNDS.toString(),
       testnetSkipOnlineCheck: true,
       deployedAt: new Date().toISOString(),
-      explorer: `${NETWORKS.testnet.explorer}/application/${appId}`,
+      explorer: `${NETWORKS[network].explorer}/application/${appId}`,
     },
     null,
     2,
