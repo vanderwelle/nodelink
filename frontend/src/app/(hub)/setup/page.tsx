@@ -1,11 +1,14 @@
 "use client";
 
-import { ArrowRight, BookOpen, ExternalLink, KeyRound, Link2, PlugZap, Power, RefreshCw, Server } from "lucide-react";
+import { ArrowRight, ChevronDown, ExternalLink, Gauge, KeyRound, Link2, Power, RefreshCw, Server, Terminal } from "lucide-react";
 import Link from "next/link";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { SectionHeader } from "@/components/hub/HubTabs";
 import { getSection } from "@/components/hub/sections";
+import { Kbd } from "@/components/Kbd";
+import { SourceLink } from "@/components/SourceLinks";
 import { CodeBlock, Notice } from "@/components/ui";
+import { NODEKIT_CMD, NODEKIT_INSTALL } from "@/content/nodekit";
 import { ENDPOINTS } from "@/lib/config";
 import { roundsToDuration } from "@/lib/format";
 import { useNode } from "@/lib/node";
@@ -32,6 +35,25 @@ function Shortcut({ icon: Icon, title, sub, children, defaultOpen = false }: { i
   );
 }
 
+function NodeKitLabel() {
+  return <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-300">With NodeKit (recommended)</div>;
+}
+
+/** Manual alternative, collapsed by default. */
+function Manual({ children }: { children: ReactNode }) {
+  return (
+    <details className="group rounded-xl border border-white/10">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 text-xs text-gray-400 [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-1.5">
+          <Terminal className="h-3.5 w-3.5" /> Manual (goal) alternative
+        </span>
+        <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
+      </summary>
+      <div className="space-y-3 border-t border-white/10 p-3">{children}</div>
+    </details>
+  );
+}
+
 export default function SetupPage() {
   const node = useNode(60_000);
   const t = node.telemetry;
@@ -43,15 +65,15 @@ export default function SetupPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Set up a node, rotate keys and change online status — commands pre-filled for your node." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub="Run and maintain your node with NodeKit — the Algorand Foundation's node manager." icon={S.icon} tone={S.tone} />
 
       <Link href="/start-node" className="card flex items-center gap-4 p-4 transition hover:border-sky-400/40">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-400/15 text-sky-400">
           <Server className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold text-white">Start a node from scratch</span>
-          <span className="block text-xs text-gray-400">Hardware, install, fast catchup, keys, going online</span>
+          <span className="block font-semibold text-white">New node? Start with NodeKit</span>
+          <span className="block text-xs text-gray-400">One command installs, syncs and sets up keys — step-by-step guide</span>
         </span>
         <ArrowRight className="h-4 w-4 shrink-0 text-gray-400" />
       </Link>
@@ -60,50 +82,83 @@ export default function SetupPage() {
         <Shortcut
           icon={KeyRound}
           title="Renew participation key"
-          sub={keyLeft !== null ? `current key expires in ${roundsToDuration(keyLeft)}` : "generate a fresh key on your node"}
+          sub={keyLeft !== null ? `current key expires in ${roundsToDuration(keyLeft)}` : "generate and register a fresh key"}
           defaultOpen={keyLeft !== null && keyLeft < 30_857n * 14n}
         >
-          <p className="text-xs text-gray-400">Run on the node. Participation keys can only vote — they cannot move funds.</p>
-          <CodeBlock
-            title="on your node"
-            code={`export ALGORAND_DATA=/var/lib/algorand
+          <NodeKitLabel />
+          <ol className="list-decimal space-y-1.5 pl-5 text-sm text-gray-300">
+            <li>Open NodeKit on your node (it must show <strong>RUNNING</strong>).</li>
+            <li>Press <Kbd>g</Kbd>, enter <span className="break-all font-mono text-xs text-gray-200">{addr}</span>, choose 30–90 days.</li>
+            <li>When the key appears, press <Kbd>r</Kbd> and sign in Lora — or <Kbd>s</Kbd> to scan a QR code with Pera.</li>
+            <li>Optional: delete the old key from its key screen with <Kbd>D</Kbd>.</li>
+          </ol>
+          <CodeBlock title="on your node" code={NODEKIT_CMD.open} />
+          <SourceLink source="quickStart" />
+          <Manual>
+            <p className="text-xs text-gray-400">Participation keys can only vote — they cannot move funds. Then send an online keyreg (next shortcut).</p>
+            <CodeBlock
+              title="on your node"
+              code={`export ALGORAND_DATA=/var/lib/algorand
 ADDR=${addr}
 FIRST=${first}
 LAST=${last}   # ~3.3 months
 sudo -u algorand goal account addpartkey -a "$ADDR" --roundFirstValid "$FIRST" --roundLastValid "$LAST"
 goal account partkeyinfo`}
-          />
-          <p className="text-xs text-gray-400">Then send an online keyreg with the new key (next shortcut).</p>
+            />
+          </Manual>
         </Shortcut>
 
-        <Shortcut icon={Power} title="Go online / offline (keyreg)" sub="sign with your node wallet — never import its key on the node">
-          <CodeBlock
-            title="online (incentive eligible: 2 ALGO fee)"
-            code={`goal account changeonlinestatus -a "${addr}" -o=1 --fee 2000000 -t online.txn
+        <Shortcut icon={Power} title="Go online / offline (keyreg)" sub="sign with your wallet — never put its spending key on the node">
+          <NodeKitLabel />
+          <p className="text-sm text-gray-300">
+            In NodeKit, select your account (<Kbd>↑</Kbd>/<Kbd>↓</Kbd>, <Kbd>enter</Kbd>), open the key, then press <Kbd>r</Kbd> to register it online or offline. Online
+            registration includes the 2 ALGO staking-rewards fee by default; launch with <span className="font-mono text-xs text-gray-200">{NODEKIT_CMD.openNoIncentives}</span> to skip it.
+          </p>
+          <SourceLink source="quickStart" />
+          <Manual>
+            <CodeBlock
+              title="online (incentive eligible: 2 ALGO fee)"
+              code={`goal account changeonlinestatus -a "${addr}" -o=1 --fee 2000000 -t online.txn
 # sign online.txn with your wallet, then:
 goal clerk rawsend -f online.txn.signed`}
-          />
-          <CodeBlock title="offline" code={`goal account changeonlinestatus -a "${addr}" -o=0 -t offline.txn`} />
-          <a className="btn-ghost w-full text-xs" href={wizard} target="_blank" rel="noreferrer">
-            <ExternalLink className="h-3.5 w-3.5" /> Build &amp; sign keyreg in Lora (works on mobile with Pera/Defly)
-          </a>
+            />
+            <CodeBlock title="offline" code={`goal account changeonlinestatus -a "${addr}" -o=0 -t offline.txn`} />
+            <a className="btn-ghost w-full text-xs" href={wizard} target="_blank" rel="noreferrer">
+              <ExternalLink className="h-3.5 w-3.5" /> Build &amp; sign keyreg in Lora
+            </a>
+          </Manual>
         </Shortcut>
 
-        <Shortcut icon={RefreshCw} title="Fast catchup" sub="re-sync a stalled or new node from the latest catchpoint">
-          <CodeBlock
-            title="on your node (TestNet)"
-            code={`export ALGORAND_DATA=/var/lib/algorand
+        <Shortcut icon={RefreshCw} title="Fast catchup" sub="re-sync a stalled or new node in minutes">
+          <NodeKitLabel />
+          <p className="text-sm text-gray-300">Quit NodeKit with <Kbd>q</Kbd>, start fast-catchup, then reopen NodeKit and wait for <strong>RUNNING</strong>.</p>
+          <CodeBlock title="on your node" code={`${NODEKIT_CMD.catchup}\n${NODEKIT_CMD.open}`} />
+          <SourceLink source="catchup" />
+          <Manual>
+            <CodeBlock
+              title="on your node (TestNet catchpoint)"
+              code={`export ALGORAND_DATA=/var/lib/algorand
 CATCHPOINT=$(curl -s https://algorand-catchpoints.s3.us-east-2.amazonaws.com/channel/testnet/latest.catchpoint)
 sudo -u algorand goal node catchup "$CATCHPOINT"
 watch -n 5 goal node status   # wait for "Sync Time: 0.0s"`}
-          />
+            />
+          </Manual>
         </Shortcut>
 
-        <Shortcut icon={PlugZap} title="Guided TUI: NodeKit" sub="install, sync and key management in one terminal app">
-          <p className="text-xs text-gray-400">NodeKit wraps the steps above in an interactive terminal UI.</p>
-          <a className="btn-ghost w-full text-xs" href="https://nodekit.run" target="_blank" rel="noreferrer">
-            <BookOpen className="h-3.5 w-3.5" /> nodekit.run <ExternalLink className="h-3 w-3" />
-          </a>
+        <Shortcut icon={Gauge} title="Upgrade" sub="node software and NodeKit itself">
+          <NodeKitLabel />
+          <p className="text-sm text-gray-300">Upgrade the Algorand node packages:</p>
+          <CodeBlock title="on your node" code={NODEKIT_CMD.upgrade} />
+          <SourceLink source="upgrade" />
+          <p className="text-sm text-gray-300">Update NodeKit: re-run the installer in the same folder and answer <Kbd>y</Kbd> to upgrade.</p>
+          <CodeBlock title="Linux" code={NODEKIT_INSTALL.linux} />
+          <SourceLink source="site" />
+        </Shortcut>
+
+        <Shortcut icon={Server} title="Start / stop the node" sub="control the Algorand daemon">
+          <NodeKitLabel />
+          <CodeBlock title="on your node" code={`${NODEKIT_CMD.start}\n${NODEKIT_CMD.stop}`} />
+          <SourceLink source="startStop" />
         </Shortcut>
       </div>
 

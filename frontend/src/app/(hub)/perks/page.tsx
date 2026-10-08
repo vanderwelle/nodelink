@@ -1,12 +1,12 @@
 "use client";
 
 import { getTier } from "@nodelink/shared";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { PerksBrowser } from "@/components/content/PerksBrowser";
 import { SectionHeader } from "@/components/hub/HubTabs";
 import { getSection } from "@/components/hub/sections";
-import { Launchpad } from "@/components/Launchpad";
 import { RankBadge } from "@/components/RankBadge";
-import { Notice } from "@/components/ui";
 import { useNode } from "@/lib/node";
 
 const S = getSection("perks");
@@ -15,19 +15,27 @@ export default function PerksPage() {
   const node = useNode(60_000);
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Perks unlock by NodeLink tier. Partner names are placeholders — no partnerships implied." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub="Partner perks that unlock by NodeLink tier." icon={S.icon} tone={S.tone} />
       {node.tier ? (
-        <div className="card flex items-center justify-between gap-3 p-4">
+        <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
           <RankBadge tier={node.tier} />
           <span className="text-xs text-gray-400">{getTier(node.tier).name} perks unlocked</span>
         </div>
       ) : (
-        <Notice title="Perks are locked">
-          Perks are claimed from a wallet carrying a NodeLink badge, so your node wallet never has to touch partner apps.{" "}
-          <Link href="/link" className="underline">Get a private badge</Link> (optional, takes ~2 minutes).
-        </Notice>
+        <div className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" />
+            <div>
+              <div className="text-sm font-medium text-white">Perks unlock with a NodeLink badge</div>
+              <p className="text-xs text-gray-400">A private badge on a daily wallet proves your tier — your node wallet never touches partner apps.</p>
+            </div>
+          </div>
+          <Link href="/link" className="btn-ghost shrink-0 text-xs">
+            Get a badge
+          </Link>
+        </div>
       )}
-      <Launchpad tier={node.tier} />
+      <PerksBrowser tier={node.tier} />
     </div>
   );
 }

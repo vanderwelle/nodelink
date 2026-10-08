@@ -13,7 +13,8 @@
     "test:localnet": "NODELINK_NETWORK=localnet tsx --test --test-reporter=spec tests/localnet.test.ts",
     "test:browser": "NODELINK_NETWORK=localnet tsx tests/browser.localnet.ts",
     "test:mobile": "tsx tests/mobile-screens.ts",
-    "test:hub": "tsx tests/hub-screens.ts"
+    "test:hub": "tsx tests/hub-screens.ts",
+    "test:v3": "tsx tests/v3-screens.ts"
   },
   "dependencies": {
     "@algorandfoundation/algokit-utils": "^9.2.2",

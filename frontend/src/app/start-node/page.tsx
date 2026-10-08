@@ -1,15 +1,124 @@
-import { Cpu, HardDrive, KeyRound, Network, RefreshCw, Server, Terminal, Wifi } from "lucide-react";
+import { CheckCircle2, ChevronDown, Cpu, Download, Gauge, HardDrive, KeyRound, MemoryStick, Network, RefreshCw, Server, Terminal, Wifi, Wrench } from "lucide-react";
 import Link from "next/link";
+import type { ComponentType, ReactNode } from "react";
+import { Kbd } from "@/components/Kbd";
+import { SourceLink, SourceList } from "@/components/SourceLinks";
 import { CodeBlock, Notice } from "@/components/ui";
+import { NODEKIT_CMD, NODEKIT_INSTALL, type NodekitSource } from "@/content/nodekit";
 
 const HARDWARE = [
-  { icon: Cpu, title: "Raspberry Pi 5 (8 GB) or Mini PC", body: "Intel N100 / Core i5 class mini PCs are ideal; Pi 5 8 GB works well for a participation node." },
-  { icon: Server, title: "8 GB+ RAM", body: "16 GB gives headroom for upgrades and monitoring tools." },
-  { icon: HardDrive, title: "256 GB+ NVMe SSD", body: "Fast NVMe storage is the biggest factor for staying in sync. Avoid SD cards and HDDs." },
-  { icon: Wifi, title: "24/7 wired Ethernet", body: "Stable, always-on connection with a UPS if possible. Wi-Fi is not recommended." },
+  { icon: Cpu, title: "8 vCPU", body: "A modern mini PC or small server. Mini PCs are popular with home node runners." },
+  { icon: MemoryStick, title: "16 GB RAM", body: "The official validator spec; leaves headroom for upgrades." },
+  { icon: HardDrive, title: "100 GB+ NVMe SSD", body: "Fast NVMe storage matters most for staying in sync. Avoid SD cards and HDDs." },
+  { icon: Wifi, title: "Fast, always-on connection", body: "Official spec: 1 Gbps, < 100 ms latency. Wired Ethernet and a UPS are strongly recommended." },
 ] as const;
 
-const STEPS = [
+interface Step {
+  readonly icon: ComponentType<{ className?: string }>;
+  readonly title: string;
+  readonly body: ReactNode;
+  readonly code?: { readonly title: string; readonly code: string }[];
+  readonly source: NodekitSource;
+}
+
+const NODEKIT_STEPS: readonly Step[] = [
+  {
+    icon: Download,
+    title: "Install NodeKit",
+    body: <>On the machine that will run your node, paste one command. It downloads NodeKit into the current folder and immediately starts the bootstrap.</>,
+    code: [
+      { title: "Linux", code: NODEKIT_INSTALL.linux },
+      { title: "macOS", code: NODEKIT_INSTALL.macos },
+    ],
+    source: "quickStart",
+  },
+  {
+    icon: Wrench,
+    title: "Bootstrap the node",
+    body: (
+      <>
+        Answer <Kbd>y</Kbd> to install a node and <Kbd>y</Kbd> to fast-catchup (syncs in 30–60 minutes instead of days). Enter your computer password when
+        asked — it&apos;s needed to install software. If bootstrap didn&apos;t start, run it yourself:
+      </>
+    ),
+    code: [{ title: "terminal", code: NODEKIT_CMD.bootstrap }],
+    source: "quickStart",
+  },
+  {
+    icon: RefreshCw,
+    title: "Wait for sync",
+    body: (
+      <>
+        NodeKit opens automatically. The yellow <strong>FAST-CATCHUP</strong> label turns into a green <strong>RUNNING</strong> label when done (usually 30–60 min). If it
+        isn&apos;t catching up, quit with <Kbd>q</Kbd>, start catchup, then reopen NodeKit:
+      </>
+    ),
+    code: [{ title: "terminal", code: `${NODEKIT_CMD.catchup}\n${NODEKIT_CMD.open}` }],
+    source: "quickStart",
+  },
+  {
+    icon: KeyRound,
+    title: "Generate participation keys",
+    body: (
+      <>
+        With the node <strong>RUNNING</strong>, press <Kbd>g</Kbd>, enter your account address and pick a duration (<Kbd>S</Kbd> cycles days / months / rounds;
+        30–90 days recommended). A 30-day key takes about 4–6 minutes to generate. Participation keys can only vote — they can&apos;t move funds.
+      </>
+    ),
+    code: [{ title: "terminal", code: NODEKIT_CMD.open }],
+    source: "quickStart",
+  },
+  {
+    icon: Network,
+    title: "Register online with your wallet",
+    body: (
+      <>
+        Press <Kbd>r</Kbd>. NodeKit shows a link to the Lora transaction wizard with your key pre-filled — or press <Kbd>s</Kbd> for a QR code you scan with
+        Pera on your phone. Sign, and NodeKit detects the registration; your account <strong>STATUS</strong> shows <strong>ONLINE</strong>. By default this
+        includes the 2 ALGO fee that makes you eligible for staking rewards (accounts over 30,000 ALGO earn per proposed block). To skip that, start
+        NodeKit with <code className="font-mono text-gray-200">{NODEKIT_CMD.openNoIncentives}</code>.
+      </>
+    ),
+    source: "quickStart",
+  },
+] as const;
+
+const MAINTAIN = [
+  {
+    icon: KeyRound,
+    title: "Renew keys before they expire",
+    body: (
+      <>
+        Same flow as above: <Kbd>g</Kbd> → address → duration, then <Kbd>r</Kbd> to register the new key. Old keys can be removed from the key screen with{" "}
+        <Kbd>D</Kbd>. NodeLink&apos;s <Link className="text-accent underline" href="/health">Health tab</Link> warns you 14 days ahead.
+      </>
+    ),
+    source: "quickStart" as NodekitSource,
+  },
+  {
+    icon: Gauge,
+    title: "Upgrade the node software",
+    body: <>Upgrades the Algorand packages installed by NodeKit.</>,
+    code: NODEKIT_CMD.upgrade,
+    source: "upgrade" as NodekitSource,
+  },
+  {
+    icon: Download,
+    title: "Update NodeKit itself",
+    body: <>Re-run the install command in the same folder; it asks whether to upgrade the existing nodekit file.</>,
+    code: NODEKIT_INSTALL.linux,
+    source: "site" as NodekitSource,
+  },
+  {
+    icon: Server,
+    title: "Start / stop the node",
+    body: <>Start or stop the Algorand daemon.</>,
+    code: `${NODEKIT_CMD.start}\n${NODEKIT_CMD.stop}`,
+    source: "startStop" as NodekitSource,
+  },
+] as const;
+
+const MANUAL_STEPS = [
   {
     icon: Terminal,
     title: "1 · OS & tooling",
@@ -69,13 +178,25 @@ export default function StartNodePage() {
       <div>
         <h1 className="text-3xl font-bold text-white">Start a node</h1>
         <p className="mt-2 text-gray-400">
-          Run an Algorand participation node, put your stake online, then come back to{" "}
-          <Link href="/link" className="text-accent underline">link a hot wallet privately</Link>.
+          The easy way: <strong className="text-white">NodeKit</strong>, the Algorand Foundation&apos;s terminal app for installing, syncing and managing a node —
+          including participation keys. No Linux expertise needed.
         </p>
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+          <SourceLink source="quickStart" />
+          <SourceLink source="site" />
+        </div>
       </div>
 
+      <Notice title="Which network?">
+        NodeKit sets up a <strong>MainNet</strong> node — the network where staking rewards are paid. This NodeLink preview reads <strong>TestNet</strong>{" "}
+        accounts, so a MainNet node won&apos;t show up in the hub until NodeLink launches on MainNet.
+      </Notice>
+
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Hardware</h2>
+        <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-gray-400">Hardware</h2>
+        <p className="mb-4 text-xs text-gray-500">
+          Official validator spec. <SourceLink source="hardware" />
+        </p>
         <div className="grid gap-3 md:grid-cols-2">
           {HARDWARE.map(({ icon: Icon, title, body }) => (
             <div key={title} className="card flex gap-4 p-5">
@@ -89,23 +210,74 @@ export default function StartNodePage() {
         </div>
       </section>
 
-      <section className="space-y-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Software setup</h2>
-        {STEPS.map(({ icon: Icon, title, body, code }) => (
-          <div key={title} className="card space-y-3 p-6">
-            <h3 className="flex items-center gap-2 font-semibold text-white">
-              <Icon className="h-5 w-5 text-accent" /> {title}
-            </h3>
-            <p className="text-sm text-gray-400">{body}</p>
-            <CodeBlock code={code} />
-          </div>
-        ))}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Set up with NodeKit</h2>
+        <ol className="space-y-4">
+          {NODEKIT_STEPS.map(({ icon: Icon, title, body, code, source }, i) => (
+            <li key={title} className="card space-y-3 p-5 sm:p-6">
+              <h3 className="flex items-center gap-3 font-semibold text-white">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-sm text-accent">{i + 1}</span>
+                <Icon className="h-5 w-5 shrink-0 text-accent" /> {title}
+              </h3>
+              <p className="text-sm leading-relaxed text-gray-400">{body}</p>
+              {code?.map((c) => <CodeBlock key={c.title} title={c.title} code={c.code} />)}
+              <SourceLink source={source} />
+            </li>
+          ))}
+        </ol>
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-4 text-sm text-emerald-200">
+          <CheckCircle2 className="h-5 w-5 shrink-0" /> You&apos;re participating in consensus. Track it in the{" "}
+          <Link href="/health" className="underline">Health tab</Link>.
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Keep it healthy</h2>
+        <div className="grid gap-3 md:grid-cols-2">
+          {MAINTAIN.map((m) => (
+            <div key={m.title} className="card min-w-0 space-y-3 p-5">
+              <h3 className="flex items-center gap-2 font-medium text-white">
+                <m.icon className="h-4 w-4 shrink-0 text-accent" /> {m.title}
+              </h3>
+              <p className="text-sm text-gray-400">{m.body}</p>
+              {"code" in m && <CodeBlock code={m.code} />}
+              <SourceLink source={m.source} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <details className="card group overflow-hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+          <span>
+            <span className="flex items-center gap-2 font-semibold text-white">
+              <Terminal className="h-5 w-5 text-gray-400" /> Advanced: manual setup
+            </span>
+            <span className="mt-1 block text-xs text-gray-500">algod + goal commands for people who prefer doing it by hand</span>
+          </span>
+          <ChevronDown className="h-5 w-5 shrink-0 text-gray-400 transition group-open:rotate-180" />
+        </summary>
+        <div className="space-y-6 border-t border-white/10 p-5">
+          {MANUAL_STEPS.map(({ icon: Icon, title, body, code }) => (
+            <div key={title} className="space-y-3">
+              <h3 className="flex items-center gap-2 font-semibold text-white">
+                <Icon className="h-5 w-5 text-gray-400" /> {title}
+              </h3>
+              <p className="text-sm text-gray-400">{body}</p>
+              <CodeBlock code={code} />
+            </div>
+          ))}
+        </div>
+      </details>
+
+      <section className="card space-y-3 p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Sources</h2>
+        <SourceList sources={["quickStart", "overview", "site", "repo", "catchup", "upgrade", "startStop", "hardware"]} />
       </section>
 
       <Notice tone="warn" title="Security reminders">
-        Keep your cold wallet&apos;s spending key off the node — only participation keys live there. Renew participation keys before
-        they expire, and monitor heartbeats from the NodeLink Health tab. Double-check commands against the official Algorand developer
-        docs for your OS version.
+        Keep your account&apos;s spending key off the node — only participation keys live there; sign registrations in your wallet (Lora or Pera). Renew
+        participation keys before they expire, and double-check commands against the official docs linked above.
       </Notice>
     </div>
   );

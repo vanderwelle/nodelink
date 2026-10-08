@@ -9,7 +9,8 @@ import { getSection } from "@/components/hub/sections";
 import { NetworkStats } from "@/components/NetworkStats";
 import { ProfileToggle } from "@/components/ProfileToggle";
 import { RankBadge } from "@/components/RankBadge";
-import { NEWS } from "@/data/content";
+import { NEWS } from "@/content/news";
+import { formatDate } from "@/content/schema";
 import { fetchPublicProfile } from "@/lib/chain";
 import { useLeaderboard } from "@/lib/leaderboard";
 import { shortAddress } from "@/lib/format";
@@ -35,15 +36,27 @@ export default function CommunityPage() {
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">
           <Newspaper className="h-4 w-4" /> News
         </h2>
-        <div className="grid gap-3 md:grid-cols-3">
-          {NEWS.map((n) => (
-            <article key={n.title} className="card p-4">
-              <div className="text-xs text-rose-300">{n.date}</div>
-              <h3 className="font-medium text-white">{n.title}</h3>
-              <p className="mt-1 text-sm text-gray-400">{n.body}</p>
-            </article>
-          ))}
-        </div>
+        {NEWS.length === 0 ? (
+          <p className="card p-4 text-sm text-gray-400">No news yet — updates from NodeLink and partners will appear here.</p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-3">
+            {NEWS.map((n) => (
+              <article key={n.id} className="card p-4">
+                <div className="flex items-center gap-2 text-xs">
+                  {n.tag && <span className="text-rose-300">{n.tag}</span>}
+                  <span className="text-gray-500">{formatDate(n.date)}</span>
+                </div>
+                <h3 className="mt-0.5 font-medium text-white">{n.title}</h3>
+                <p className="mt-1 text-sm text-gray-400">{n.body}</p>
+                {n.url && (
+                  <a className="mt-2 inline-block text-xs text-accent" href={n.url} target="_blank" rel="noreferrer">
+                    Read more
+                  </a>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="card p-4">

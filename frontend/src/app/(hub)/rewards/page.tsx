@@ -1,8 +1,9 @@
 "use client";
 
 import { microAlgosToAlgo } from "@nodelink/shared";
-import { BarChart3, ExternalLink, Percent, Trophy, Wallet } from "lucide-react";
+import { BarChart3, ExternalLink, Sparkles, Trophy } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ProgramsBrowser } from "@/components/content/ProgramsBrowser";
 import { LiveTag, Placeholder, SectionHeader } from "@/components/hub/HubTabs";
 import { NodePicker } from "@/components/hub/NodePicker";
 import { getSection } from "@/components/hub/sections";
@@ -48,7 +49,7 @@ export default function RewardsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader title={S.title} sub="Block proposals and proposer payouts for your node account." icon={S.icon} tone={S.tone} />
+      <SectionHeader title={S.title} sub="Live protocol proposer payouts for your node, plus partner reward programs." icon={S.icon} tone={S.tone} />
       <NodePicker node={node} compact />
       {err && <Notice tone="warn" title="Could not load proposals">{err}</Notice>}
 
@@ -68,21 +69,21 @@ export default function RewardsPage() {
           <div className="flex items-center gap-2 text-sm font-medium text-white">
             <BarChart3 className="h-4 w-4 text-amber-400" /> Proposals per day (14d)
           </div>
-          {bins ? <LiveTag /> : <Placeholder label="sample" />}
+          {bins ? <LiveTag /> : <Placeholder label={addr ? "loading" : "no node"} />}
         </div>
         <div className="flex h-32 items-end gap-1" aria-label="proposals per day chart">
-          {(bins ?? Array.from({ length: 14 }, (_, i) => ({ daysAgo: 13 - i, count: [2, 4, 3, 5, 1, 4, 6, 3, 2, 5, 4, 3, 6, 4][i] ?? 1, payout: 0n }))).map((b, i) => (
+          {(bins ?? Array.from({ length: 14 }, (_, i) => ({ daysAgo: 13 - i, count: 0, payout: 0n }))).map((b, i) => (
             <div
               key={i}
               className={`flex-1 rounded-t ${bins ? "bg-amber-400/70" : "bg-white/10"}`}
-              style={{ height: `${Math.max(3, (b.count / (bins ? maxCount : 6)) * 100)}%` }}
-              title={bins ? `${b.daysAgo}d ago: ${b.count} proposals, ${microAlgosToAlgo(b.payout, 3)} ALGO` : "sample data"}
+              style={{ height: `${Math.max(3, (b.count / maxCount) * 100)}%` }}
+              title={`${b.daysAgo}d ago: ${b.count} proposals${bins ? `, ${microAlgosToAlgo(b.payout, 3)} ALGO` : ""}`}
             />
           ))}
         </div>
         <div className="mt-1 flex justify-between text-[10px] text-gray-500">
           <span>14d ago</span>
-          <span>{bins ? "last 24h" : "Sample shape — select a node to see real data"}</span>
+          <span>{bins ? "last 24h" : addr ? "loading…" : "Select a node above to see proposals"}</span>
         </div>
       </section>
 
@@ -111,28 +112,16 @@ export default function RewardsPage() {
         </Notice>
       )}
 
-      <section className="grid gap-3 md:grid-cols-3">
-        <div className="card p-4">
-          <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
-            <span className="flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> Rewards history export</span>
-            <Placeholder />
+      <section className="space-y-3">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+              <Sparkles className="h-5 w-5 text-amber-400" /> Reward programs
+            </h2>
+            <p className="text-xs text-gray-400">Partner boosts, tier multipliers and campaigns for node runners.</p>
           </div>
-          <p className="text-xs text-gray-500">CSV export of payouts for tax/accounting.</p>
         </div>
-        <div className="card p-4">
-          <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
-            <span className="flex items-center gap-1"><Percent className="h-3.5 w-3.5" /> Projected APY</span>
-            <Placeholder />
-          </div>
-          <p className="text-xs text-gray-500">Forward-looking APY from network payout rate and your stake share.</p>
-        </div>
-        <div className="card p-4">
-          <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
-            <span className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5" /> Tier multiplier earnings</span>
-            <Placeholder />
-          </div>
-          <p className="text-xs text-gray-500">Partner rewards boosted by your NodeLink tier.</p>
-        </div>
+        <ProgramsBrowser tier={node.tier} />
       </section>
 
       {t && (

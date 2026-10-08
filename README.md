@@ -41,15 +41,15 @@ opening a deep-linkable tab with a shared tab strip:
 | | Route | Live today | Placeholder (labelled in UI) |
 |---|---|---|---|
 | A | `/health` | online status, incentive eligibility, part-key expiry, last proposal/heartbeat, computed alerts, network sync (Nodely algod) | uptime %, node-side sync (needs node agent), push alerts |
-| B | `/rewards` | node balance, proposals + proposer payouts per day (30d, Nodely indexer `/v2/block-headers`, queried from the browser), realized APR | CSV export, projected APY, tier-multiplier earnings |
-| C | `/perks` | tier gating from the connected wallet's on-chain badge, filters | partner perks themselves (placeholder partners) |
-| D | `/setup` | addpartkey/keyreg/catchup commands pre-filled with the node address + current round, Lora keyreg wizard link, `/start-node` guide | — |
-| E | `/community` | opt-in leaderboard teaser, profile toggle, network stats | news feed is static sample content |
+| B | `/rewards` | node balance, proposals + proposer payouts per day (30d, Nodely indexer `/v2/block-headers`, queried from the browser), realized APR | reward programs registry (`content/rewards-programs.ts`) ships empty |
+| C | `/perks` | tier gating from the connected wallet's on-chain badge; status/category filters, sort, detail sheets, `?perk=` deep links | perk registry (`content/perks.ts`) ships empty |
+| D | `/setup` | NodeKit-first shortcuts (renew key, keyreg, catchup, upgrade, start/stop) with manual `goal` alternatives pre-filled with the node address + round; `/start-node` is a NodeKit guide citing dev.algorand.co | — |
+| E | `/community` | opt-in leaderboard teaser, profile toggle, network stats, news registry (`content/news.ts`) | — |
 
 The node address comes from the private link session (if this browser holds one) or a read-only
 "watch" address saved in localStorage. `/dashboard` redirects to `/health`. Other routes: `/link`
 (private 2-step wizard), `/start-node`, `/leaderboard`. API routes: `/api/merkle-path`, `/api/stats`,
-`/api/leaderboard`.
+`/api/leaderboard`. Editing perks, reward programs and news: see [CONTENT.md](CONTENT.md).
 
 ## Quick start
 

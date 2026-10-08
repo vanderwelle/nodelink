@@ -6,8 +6,9 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import type { StatsResponse } from "@/app/api/stats/route";
 import { SECTIONS, type HubSection } from "@/components/hub/sections";
-import { NEWS } from "@/data/content";
-import { PERKS } from "@/data/perks";
+import { NEWS } from "@/content/news";
+import { PERKS } from "@/content/perks";
+import { effectiveStatus } from "@/content/schema";
 import { roundsToDuration } from "@/lib/format";
 import { useLeaderboard } from "@/lib/leaderboard";
 import { evaluateHealth, SEVERITY_STYLE, useNode, worstSeverity, type NodeContext } from "@/lib/node";
@@ -54,8 +55,10 @@ function tileStatus(id: HubSection["id"], node: NodeContext): { line: ReactNode;
       if (!t) return { line: "Proposals, payouts, yield" };
       return { line: <>{microAlgosToAlgo(t.balance, 0)} ALGO · {t.lastProposed ? `proposed #${t.lastProposed.toString()}` : "no proposals yet"}</> };
     case "perks": {
-      const unlocked = node.tier === null ? 0 : PERKS.filter((p) => node.tier !== null && node.tier >= p.minTier).length;
-      return { line: node.tier === null ? `${PERKS.length} perks · badge required` : `${unlocked}/${PERKS.length} perks unlocked` };
+      const live = PERKS.filter((p) => effectiveStatus(p) !== "ended");
+      if (live.length === 0) return { line: "Partners coming soon" };
+      const unlocked = node.tier === null ? 0 : live.filter((p) => node.tier !== null && node.tier >= p.minTier).length;
+      return { line: node.tier === null ? `${live.length} perks · badge required` : `${unlocked}/${live.length} perks unlocked` };
     }
     case "setup":
       if (keyLeft !== null) return { line: <>Key renewal in {roundsToDuration(keyLeft).replace("~", "")}</>, dot: keyLeft < 30_857n * 14n ? "bg-amber-400" : undefined };
@@ -111,7 +114,7 @@ function CommunityBar({ section, stats }: { section: HubSection; stats: StatsRes
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
           <span className="flex min-w-0 items-center gap-1">
-            <Newspaper className="h-3 w-3 shrink-0" /> <span className="truncate">{NEWS[0]?.title}</span>
+            <Newspaper className="h-3 w-3 shrink-0" /> <span className="truncate">{NEWS[0]?.title ?? "News coming soon"}</span>
           </span>
           <span className="flex items-center gap-1">
             <Trophy className="h-3 w-3 text-amber-400" /> {entries ? `${entries.length} public node runners` : "leaderboard"}

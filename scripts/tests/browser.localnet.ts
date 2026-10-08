@@ -56,9 +56,10 @@ try {
   await page.waitForTimeout(2_000);
   await page.screenshot({ path: resolve(OUT, "landing.png"), fullPage: true });
 
-  step("start-node guide renders");
+  step("start-node guide renders (NodeKit-first)");
   await page.goto(`${BASE}/start-node`);
-  await page.getByText("Fast catchup").waitFor();
+  await page.getByText("Set up with NodeKit").waitFor();
+  await page.getByText("wget -qO- https://nodekit.run/install.sh | bash").first().waitFor();
   await page.screenshot({ path: resolve(OUT, "start-node.png"), fullPage: true });
 
   step("link wizard step 1: connect cold wallet");
@@ -106,8 +107,8 @@ try {
   await page.getByText("from private link").waitFor();
   await page.screenshot({ path: resolve(OUT, "hub-health.png"), fullPage: true });
   await page.getByRole("tab", { name: "Perks" }).click();
-  await page.getByText("Ecosystem Launchpad").waitFor();
   await page.getByText("Scout perks unlocked").waitFor();
+  await page.getByText("No perks yet").waitFor();
 
   step("leaderboard renders (no public profiles yet)");
   await page.getByRole("tab", { name: "Community" }).click();
