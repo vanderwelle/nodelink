@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 "use client";
 
 import { Clock, ExternalLink, Gauge, HeartPulse, KeyRound, RefreshCw, Server, ShieldCheck, Wifi } from "lucide-react";

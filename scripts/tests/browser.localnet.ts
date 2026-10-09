@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Full browser E2E on LocalNet with headless Chrome (playwright-core):
  *   /link step 1 (cold: deposit + encrypted backup download) -> root updater ->

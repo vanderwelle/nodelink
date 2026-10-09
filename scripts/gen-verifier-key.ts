@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Bake the Groth16 verification key into the Algorand Python contract as constants
  * (contracts/verifier_key.py). Points are encoded in the AVM's BN254 format:

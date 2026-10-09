@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { NextResponse } from "next/server";
 import algosdk from "algosdk";
 import { BOX_PREFIX, boxName, decodeHotStatus, makeAlgod, readBox } from "@nodelink/shared";

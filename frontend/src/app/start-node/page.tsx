@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { CheckCircle2, ChevronDown, Cpu, Download, Gauge, HardDrive, KeyRound, MemoryStick, Network, RefreshCw, Server, Terminal, Wifi, Wrench } from "lucide-react";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";

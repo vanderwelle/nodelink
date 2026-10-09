@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { microAlgosToAlgo } from "@nodelink/shared";
 import { SECONDS_PER_ROUND } from "./config";
 

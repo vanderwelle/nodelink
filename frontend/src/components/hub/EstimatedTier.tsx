@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { getTier, type TierId } from "@nodelink/shared";
 import { Calculator } from "lucide-react";
 import Link from "next/link";

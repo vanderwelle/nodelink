@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { MICROALGOS_PER_ALGO } from "./constants";
 
 export type TierId = 1 | 2 | 3 | 4 | 5;

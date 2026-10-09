@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 pragma circom 2.1.9;
 
 include "circomlib/circuits/poseidon.circom";

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { poseidon2 } from "poseidon-lite";
 import { TREE_LEVELS } from "./constants";
 

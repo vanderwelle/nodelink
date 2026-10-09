@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { isTierId } from "@nodelink/shared";
 import { checkDates, checkUrl, PROGRAM_TYPES, validateRegistry, type RewardsProgram } from "./schema";
 

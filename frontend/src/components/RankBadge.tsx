@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { formatMultiplier, getTier, type TierId } from "@nodelink/shared";
 import { Crown, Gem, Mountain, Shield, Telescope, type LucideIcon } from "lucide-react";
 

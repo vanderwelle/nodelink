@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { BookOpen, ExternalLink } from "lucide-react";
 import { NODEKIT_SOURCES, type NodekitSource } from "@/content/nodekit";
 

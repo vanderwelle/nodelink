@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { poseidon1, poseidon3 } from "poseidon-lite";
 import { randomFieldElement } from "./field";
 import type { TierId } from "./tiers";

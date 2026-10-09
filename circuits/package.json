@@ -2,6 +2,7 @@
   "name": "@nodelink/circuits",
   "private": true,
   "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "build": "bash scripts/build.sh",

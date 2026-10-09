@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 # Remove the NodeLink agent.  sudo bash uninstall.sh [--purge]   (--purge also deletes config + user)
 set -euo pipefail
 [ "$(id -u)" -eq 0 ] || { echo "run as root (sudo)" >&2; exit 1; }

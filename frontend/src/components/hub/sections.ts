@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { Activity, Coins, Gift, Users, Wrench, type LucideIcon } from "lucide-react";
 
 export type SectionId = "health" | "rewards" | "perks" | "setup" | "community";

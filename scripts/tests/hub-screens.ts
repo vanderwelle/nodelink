@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Phone screenshots of the hub (390x844) + layout assertions:
  *  - no horizontal overflow, A–D tiles roughly square, E bar spans the grid width.
@@ -6,7 +8,7 @@
 import { chromium, devices } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "https://nodelink-ten.vercel.app";
-const OUT = process.env.OUT_DIR ?? "/workspace";
+const OUT = process.env.OUT_DIR ?? ".";
 const WATCH = process.env.WATCH;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "/usr/bin/google-chrome", headless: true });

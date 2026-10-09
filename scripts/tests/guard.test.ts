@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Offline unit test for the frontend MainNet transaction guard. Builds UNSIGNED transactions
  * locally (nothing is signed or sent) and checks the guard rejects MainNet / non-TestNet ones.

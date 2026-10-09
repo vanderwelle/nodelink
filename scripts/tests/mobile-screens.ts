@@ -1,12 +1,14 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Phone-viewport smoke test against a deployed URL (default: production Vercel URL).
- *   BASE_URL=https://nodelink-ten.vercel.app OUT_DIR=/workspace npx tsx tests/mobile-screens.ts
+ *   BASE_URL=https://nodelink-ten.vercel.app OUT_DIR=. npx tsx tests/mobile-screens.ts
  * Saves full-page screenshots and fails if any page overflows horizontally.
  */
 import { chromium, devices } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "https://nodelink-ten.vercel.app";
-const OUT = process.env.OUT_DIR ?? "/workspace";
+const OUT = process.env.OUT_DIR ?? ".";
 const PAGES = ["/", "/health", "/rewards", "/perks", "/setup", "/community", "/link", "/start-node", "/leaderboard"] as const;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "/usr/bin/google-chrome", headless: true });

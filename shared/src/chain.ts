@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import algosdk from "algosdk";
 import { BOX_PREFIX, ROOT_HISTORY_SIZE, ROOT_SLOT_SIZE } from "./constants";
 import { bigIntToBytes, bytesEqual, bytesToBigInt, bytesToHex, concatBytes } from "./field";

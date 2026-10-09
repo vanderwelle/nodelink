@@ -1,5 +1,16 @@
 # NodeLink
 
+> [!WARNING]
+> **TestNet preview — not audited — no warranty.**
+> * NodeLink's contract and every transaction run on **Algorand TestNet** only. Do not deploy it to MainNet
+>   or use it with real funds. (The hub's read-only node telemetry may *read* public MainNet data.)
+> * The smart contract, ZK circuits and frontend have **not been security-audited**.
+> * The Groth16 proving/verification keys come from a **dev-only, single-party trusted setup**: whoever ran
+>   it could forge proofs. `node_membership_final.zkey` is **not for production**; a real launch needs a
+>   multi-party ceremony.
+> * Provided **"as is", without warranty of any kind** (AGPL-3.0, sections 15–16). See [SECURITY.md](SECURITY.md)
+>   to report vulnerabilities.
+
 The everything app for **Algorand consensus node runners** — node health, rewards, perks, setup and community —
 with a zero-knowledge cold↔hot wallet link as quiet infrastructure underneath.
 A cold (node) wallet deposits an opaque commitment; a daily hot wallet later proves — with an
@@ -7,8 +18,9 @@ in-browser Groth16 proof verified **on-chain with the AVM's native BN254 opcodes
 to a node-runner tier, without revealing which cold wallet it is linked to.
 
 > **Status: TestNet preview.** Dev-only trusted setup. Never deploy this build to MainNet.
-> All scripts refuse to talk to a MainNet node (genesis check), the frontend has no MainNet network
-> configured, and the contract rejects the testing bypass flag on MainNet's genesis hash.
+> All scripts refuse to talk to a MainNet node (genesis check), the frontend's wallet/transaction network
+> cannot be MainNet and every transaction passes a MainNet genesis guard, and the contract rejects the
+> testing bypass flag on MainNet's genesis hash.
 
 ```
 cold wallet ── deposit_commitment(leaf, tier) ──► LeafDeposited (ARC-28) ──► off-chain indexer
@@ -259,3 +271,27 @@ immutable in the contract).
 - The generated TS client is post-processed in `contracts/build.sh` for `noUncheckedIndexedAccess` and to
   replace its three `any`s with `unknown`; hand-written code has zero `any`.
 - Partner dApps, perks and news are placeholders (no partnerships implied).
+
+## Contributing & security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately as described in
+[SECURITY.md](SECURITY.md) — not in public issues.
+
+## License
+
+Copyright (C) 2026 Julian van der Welle
+
+NodeLink is free software: you can redistribute it and/or modify it under the terms of the
+**GNU Affero General Public License** as published by the Free Software Foundation, either version 3 of
+the License, or (at your option) any later version (`AGPL-3.0-or-later`). See [LICENSE](LICENSE).
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+Public License for more details.
+
+Because it is AGPL, if you run a modified version as a network service you must offer its users the
+corresponding source code (section 13).
+
+Third-party components keep their own licenses — notably `circomlib`, `snarkjs`, `ffjavascript` and the
+other iden3 libraries (**GPL-3.0**, combinable with AGPL-3.0 under section 13 of both licenses),
+Algorand Python / PuyaPy (AGPL-3.0-or-later), and MIT / Apache-2.0 / BSD / ISC packages.

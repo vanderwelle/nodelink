@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 """NodeLink protocol — zero-knowledge consensus-node tier attestation on Algorand.
 
 Cold wallet (online consensus node)            Hot wallet (daily driver)

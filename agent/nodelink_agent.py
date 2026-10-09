@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 """
 NodeLink agent: a tiny, read-only watchdog for NodeKit-installed Algorand nodes.
 

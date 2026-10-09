@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { BN254_BASE_FIELD, BN254_SCALAR_FIELD, NUM_PUBLIC_SIGNALS, TREE_LEVELS } from "./constants";
 import { addressToLimbs, bigIntToBytes, concatBytes } from "./field";
 import type { MerklePath } from "./merkle";

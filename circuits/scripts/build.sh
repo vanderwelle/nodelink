@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 # Compile node_membership.circom and run a DEV-ONLY Groth16 trusted setup.
 #
 #   !!! NOT FOR PRODUCTION !!!

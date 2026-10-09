@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Phone (390x844) checks for /rewards, /perks, /setup, /start-node.
  *   BASE_URL=… OUT_DIR=… [EXAMPLES=1] npx tsx tests/v3-screens.ts
@@ -6,7 +8,7 @@
 import { chromium, devices } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "https://nodelink-ten.vercel.app";
-const OUT = process.env.OUT_DIR ?? "/workspace";
+const OUT = process.env.OUT_DIR ?? ".";
 const EXAMPLES = process.env.EXAMPLES === "1";
 const PREFIX = process.env.PREFIX ?? "nodelink-v3";
 

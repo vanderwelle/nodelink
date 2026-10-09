@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { AlgorandClient, microAlgo } from "@algorandfoundation/algokit-utils";
 import type { TransactionSignerAccount } from "@algorandfoundation/algokit-utils/types/account";
 import type algosdk from "algosdk";

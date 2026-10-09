@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import algosdk from "algosdk";
 import { BN254_SCALAR_FIELD } from "./constants";
 

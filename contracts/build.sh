@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 # Compile the NodeLink contract with puyapy (AVM 11) and generate typed clients.
 # Requires: algokit + puyapy (+ algokit-client-generator for the Python client) on PATH,
 # e.g. `python -m venv .venv && .venv/bin/pip install algokit puyapy algokit-client-generator`.

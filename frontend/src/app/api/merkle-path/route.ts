@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { NextResponse, type NextRequest } from "next/server";
 import { getMerklePathForCommitment, isFieldElement, makeAlgod, makeIndexer } from "@nodelink/shared";
 import { APP_ID, ENDPOINTS } from "@/lib/config";

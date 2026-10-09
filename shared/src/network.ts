@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 export type NetworkId = "testnet" | "localnet";
 
 export interface NetworkEndpoints {

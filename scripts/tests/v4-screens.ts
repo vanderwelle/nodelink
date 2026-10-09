@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * v4 phone (390x844) verification: hub telemetry reads MAINNET, contract stays TESTNET.
  *   BASE_URL=https://nodelink-ten.vercel.app ADDR=<mainnet node> npx tsx tests/v4-screens.ts
@@ -6,7 +8,7 @@
 import { chromium, devices, type Request } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "https://nodelink-ten.vercel.app";
-const OUT = process.env.OUT_DIR ?? "/workspace";
+const OUT = process.env.OUT_DIR ?? ".";
 const PREFIX = process.env.PREFIX ?? "nodelink-v4";
 const APP_ID = process.env.APP_ID ?? "773918931";
 const ADDR = process.env.ADDR ?? "QNGQXHUFFMY6KOXBBJFYQHV6BN52YUANDRHPV4EMNANJJRPGMSR6M3GXQE";

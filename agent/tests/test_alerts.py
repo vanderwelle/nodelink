@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 """Unit tests for the alert state machine and rules (stdlib unittest; runs on the Pi too)."""
 import io
 import logging

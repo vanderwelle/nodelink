@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 """
 Integration tests: the real agent loop (`run --once` per poll, state on disk) against
   * a mock algod HTTP server (scripted status/account/participation responses),

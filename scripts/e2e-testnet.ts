@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * End-to-end on Algorand TESTNET:
  *   cold: deposit_commitment  ->  indexer sees LeafDeposited  ->  root updater: post_root

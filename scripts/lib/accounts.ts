@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import type { AlgorandClient } from "@algorandfoundation/algokit-utils";
 import algosdk from "algosdk";
 import { ENV_PATH, upsertEnv } from "./env";

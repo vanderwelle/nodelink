@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 Julian van der Welle
 # NodeLink agent installer — Raspberry Pi 5 (arm64) and x86-64 mini PCs, Debian / Raspberry Pi OS / Ubuntu.
 #   curl -fsSL https://raw.githubusercontent.com/vanderwelle/nodelink/main/agent/install.sh | sudo bash
 # or from a checkout:   sudo bash agent/install.sh

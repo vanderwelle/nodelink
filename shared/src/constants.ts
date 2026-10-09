@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /** Depth of every NodeLink tier Merkle tree (2^20 ≈ 1M leaves per tier). */
 export const TREE_LEVELS = 20;
 

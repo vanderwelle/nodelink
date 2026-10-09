@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * NodeKit steps used on /start-node and /setup. Every command and key below is taken from the
  * official docs linked in NODEKIT_SOURCES (checked 2026-10-08). Update both together.

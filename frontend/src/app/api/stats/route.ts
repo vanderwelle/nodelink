@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 import { NextResponse } from "next/server";
 import { fetchLeafCounts, fetchRootSlots, makeAlgod } from "@nodelink/shared";
 import { APP_ID, ENDPOINTS, NETWORK } from "@/lib/config";

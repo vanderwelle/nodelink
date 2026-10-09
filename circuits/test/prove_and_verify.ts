@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Julian van der Welle
 /**
  * Circuit test: build a tier tree with several leaves, generate a witness + Groth16
  * proof for one leaf bound to a hot wallet, verify it with snarkjs, and check that
