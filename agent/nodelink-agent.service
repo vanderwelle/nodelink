@@ -1,0 +1,54 @@
+# NodeLink agent — read-only Algorand node watchdog. Low priority so it never competes with algod.
+[Unit]
+Description=NodeLink agent (read-only Algorand node watchdog)
+Documentation=https://github.com/vanderwelle/nodelink/tree/main/agent
+After=network-online.target algorand.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nodelink-agent
+Group=nodelink-agent
+ExecStart=/usr/bin/python3 -S /opt/nodelink-agent/nodelink_agent.py --config /etc/nodelink-agent/agent.ini run
+Environment=PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=30
+
+# --- stay out of algod's way ---
+Nice=19
+CPUSchedulingPolicy=idle
+IOSchedulingClass=idle
+CPUWeight=1
+CPUQuota=5%
+MemoryHigh=64M
+MemoryMax=96M
+TasksMax=16
+# (daemon ~19 MB; the short-lived HTTPS helper adds ~29 MB for ~0.25 s every few minutes)
+# if memory is ever tight, the kernel kills this agent long before algod
+OOMScoreAdjust=1000
+
+# --- least privilege (reads /var/lib/algorand, /proc, /sys; writes only its state dir) ---
+StateDirectory=nodelink-agent
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

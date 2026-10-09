@@ -104,6 +104,13 @@ For a LocalNet UI session: `NEXT_PUBLIC_NETWORK=localnet NEXT_PUBLIC_TELEMETRY_N
 (adds the KMD and test-only Mnemonic wallet providers). The headless browser test drives the whole
 wizard: `BASE_URL=http://localhost:3100 CHROME_PATH=/usr/bin/google-chrome npm run test:browser -w scripts`.
 
+### NodeLink agent (on-node alerts)
+
+[`agent/`](agent/README.md) is a single-file, stdlib-only Python watchdog for NodeKit nodes (Raspberry Pi 5 /
+x86): it reads the local algod REST API with the token from `/var/lib/algorand`, and sends state-change
+alerts (node down, out of sync, offline, part-key expiry, temperature/throttling, disk) to your own
+Telegram bot or Discord webhook. ~19 MB RSS, idle-priority systemd unit. `npm run test:agent`.
+
 ### Hosted frontend (Vercel)
 
 Production: **https://nodelink-ten.vercel.app** (TestNet app `773918931`). Vercel project `nodelink`

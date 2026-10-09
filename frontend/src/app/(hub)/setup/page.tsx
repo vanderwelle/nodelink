@@ -3,6 +3,7 @@
 import { ArrowRight, ChevronDown, ExternalLink, Gauge, KeyRound, Link2, Power, RefreshCw, Server, Terminal } from "lucide-react";
 import Link from "next/link";
 import { useState, type ComponentType, type ReactNode } from "react";
+import { AgentCard } from "@/components/hub/AgentCard";
 import { SectionHeader } from "@/components/hub/HubTabs";
 import { NetPill } from "@/components/hub/NetPill";
 import { getSection } from "@/components/hub/sections";
@@ -175,6 +176,8 @@ watch -n 5 goal node status   # wait for "Sync Time: 0.0s"`}
           <SourceLink source="startStop" />
         </Shortcut>
       </div>
+
+      <AgentCard />
 
       <div className="flex justify-end">
         <NetPill kind="contract" />

@@ -3,6 +3,7 @@
 import { Clock, ExternalLink, Gauge, HeartPulse, KeyRound, RefreshCw, Server, ShieldCheck, Wifi } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AgentCard } from "@/components/hub/AgentCard";
 import { EstimatedTierCard } from "@/components/hub/EstimatedTier";
 import { LiveTag, Placeholder, SectionHeader } from "@/components/hub/HubTabs";
 import { NetPill, UpdatedAgo } from "@/components/hub/NetPill";
@@ -143,17 +144,18 @@ export default function HealthPage() {
             <Placeholder />
           </div>
           <div className="text-xl font-semibold text-gray-500">—</div>
-          <div className="mt-1 text-xs text-gray-500">Needs the NodeLink node agent (reports your algod&apos;s sync + uptime). Not available yet.</div>
+          <div className="mt-1 text-xs text-gray-500">Needs an opt-in uptime feed from the NodeLink agent to the hub — not built yet. The agent already alerts you directly.</div>
         </div>
         <div className="card p-4">
           <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-wider text-gray-500">
-            <span className="flex items-center gap-1"><HeartPulse className="h-3.5 w-3.5" /> Push alerts</span>
-            <Placeholder />
+            <span className="flex items-center gap-1"><HeartPulse className="h-3.5 w-3.5" /> Phone alerts</span>
           </div>
-          <div className="text-xl font-semibold text-gray-500">Off</div>
-          <div className="mt-1 text-xs text-gray-500">Phone notifications for key expiry / going offline are planned. Alerts above update live while this page is open.</div>
+          <div className="text-xl font-semibold text-white">Telegram / Discord</div>
+          <div className="mt-1 text-xs text-gray-500">From the NodeLink agent on your node (below). Alerts above update live while this page is open.</div>
         </div>
       </section>
+
+      <AgentCard />
 
       {node.activeAddress && (
         <section className="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
