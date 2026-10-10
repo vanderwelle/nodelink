@@ -8,8 +8,10 @@ production). Do not use it with real funds.
 
 Please **do not open a public issue** for security problems.
 
-* Preferred: GitHub → this repository → **Security** → **Report a vulnerability** (private advisory).
-* Email: **TODO (Julian): add a security contact address** <!-- e.g. security@your-domain -->
+* **Primary route: GitHub private vulnerability reporting.** Go to this repository → **Security** →
+  **Report a vulnerability** (or open <https://github.com/vanderwelle/nodelink/security/advisories/new>).
+  The report stays private between you and the maintainer until a fix is published.
+* Email (fallback only): **TODO (Julian): add a security contact address** <!-- e.g. security@your-domain -->
 
 Please include: affected component (contract, circuits, frontend, scripts, agent), steps to reproduce or
 a proof of concept, impact, and any suggested fix. We aim to acknowledge reports within **7 days** and

@@ -277,6 +277,11 @@ immutable in the contract).
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately as described in
 [SECURITY.md](SECURITY.md) — not in public issues.
 
+Contributors sign a short [Contributor License Agreement](CLA.md) (via the CLA Assistant bot on their
+first PR): they keep their copyright and grant Julian van der Welle a perpetual license including the
+right to relicense (e.g. commercial dual licensing); the project stays AGPL-3.0-or-later. Every push and
+PR is scanned for secrets with gitleaks (`.github/workflows/gitleaks.yml`).
+
 ## License
 
 Copyright (C) 2026 Julian van der Welle

@@ -26,5 +26,8 @@ LocalNet end-to-end tests and the TestNet deploy are described in the [README](R
 * TypeScript must pass `tsc --noEmit` with the strict settings; the frontend must build.
 * New source files start with the SPDX header:
   `// SPDX-License-Identifier: AGPL-3.0-or-later` (or `#` for Python/shell).
-* By submitting a contribution you agree that it is licensed under the project's license,
-  **AGPL-3.0-or-later** (inbound = outbound). No CLA is required.
+* **CLA required:** before your first PR can be merged you sign the short
+  [Contributor License Agreement](CLA.md) by commenting on the PR as the CLA Assistant bot asks.
+  You keep your copyright; you grant Julian van der Welle a broad license (including the right to
+  relicense, e.g. for commercial dual licensing). The project itself stays **AGPL-3.0-or-later**.
+* CI runs a [gitleaks](https://github.com/gitleaks/gitleaks) secret scan on every push and PR.
